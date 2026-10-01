@@ -22,6 +22,8 @@ Ahora:
      inventaba una mediana con cuatro trastos y sonaba a dato.
 """
 import json
+import warnings
+warnings.simplefilter('ignore')
 import os
 import re
 import statistics

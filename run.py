@@ -6,6 +6,8 @@ Pasada diaria. Uso:
     .venv/bin/python run.py --informe    sin rastrear, solo puntuar lo guardado
 """
 import json
+import warnings
+warnings.simplefilter('ignore')
 import os
 import sys
 
@@ -24,13 +26,16 @@ def cargar():
 def main():
     args = [a for a in sys.argv[1:]]
     solo_informe = "--informe" in args
+    con_hist = "--historico" in args
     casas = [a for a in args if a in CASAS] or list(CASAS)
+    if con_hist:
+        print("Incluyendo el archivo historico: esto tarda horas.")
 
     if not solo_informe:
         todos = []
         for cid in sorted(casas, key=lambda c: CASAS[c]["prioridad"]):
             try:
-                todos += rastrear_casa(cid)
+                todos += rastrear_casa(cid, con_historico=con_hist)
             except ParadaTotal as e:
                 print(f"\n!! PARADA TOTAL en {cid}: {e}")
                 print("   No reintentes en bucle. Revisa robots.txt y avisa.")

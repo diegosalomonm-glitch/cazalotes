@@ -12,6 +12,8 @@ Decisiones que vienen del brief de Diego:
 La plantilla HTML vive en plantilla.py.
 """
 import json
+import warnings
+warnings.simplefilter('ignore')
 import os
 import re
 import sys

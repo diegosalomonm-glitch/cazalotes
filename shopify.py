@@ -8,6 +8,8 @@ sin prima de comprador. Se marcan con comision 0 para que el calculo no mienta.
 """
 import html
 import json
+import warnings
+warnings.simplefilter('ignore')
 import re
 import time
 import urllib.request

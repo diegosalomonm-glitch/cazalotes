@@ -10,6 +10,8 @@ Uso:
     buscar(CAJONERA_DORMITORIO)
 """
 import json
+import warnings
+warnings.simplefilter('ignore')
 import os
 import re
 import sys

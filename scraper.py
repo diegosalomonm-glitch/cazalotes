@@ -270,7 +270,14 @@ def rastrear_duran(max_paginas=10):
     return encontrados
 
 
-def rastrear_casa(casa_id, max_paginas=8):
+def rastrear_casa(casa_id, max_paginas=8, con_historico=False):
+    """
+    Pasada normal = SOLO lo que esta a la venta.
+
+    El archivo historico de Alcala son decenas de catalogos de 8 paginas a 3
+    segundos por peticion: horas. Y no cambia. Se baja una vez con
+    --historico y luego se deja en paz.
+    """
     if casa_id == "duran":
         return rastrear_duran()
     casa = CASAS[casa_id]
@@ -278,7 +285,7 @@ def rastrear_casa(casa_id, max_paginas=8):
     encontrados, urls_vistas = [], set()
 
     # 1) expandir listados de subastas a catalogos de lote
-    rutas = list(casa["listados"])
+    rutas = [r for r in casa["listados"] if con_historico or "histor" not in r]
     for ruta in list(rutas):
         url = urllib.parse.urljoin(casa["base"], ruta)
         if "/subasta/" in url:
