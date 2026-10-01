@@ -170,6 +170,7 @@ GUSTA = {
     "mesa de centro": 2, "mesa de comedor": 2, "mesita": 2, "velador": 2,
 
     # Disenadores y marcas que YA perseguia el solo
+    "gio ponti": 4, "ponti": 2, "truck furniture": 3,
     "carlo hauner": 3, "hauner": 2, "luigi brusotti": 3, "brusotti": 2,
     "pino melis": 3, "simon gavina": 3, "philips": 2, "infraphil": 3,
     "delaunay": 2,
@@ -223,6 +224,19 @@ NO_GUSTA_SUAVE = {
     "diamantes": -4, "oro de ley": -4, "plata de ley": -4, "quilates": -5,
     "reloj": -6, "automatico": -3, "cuarzo": -4, "correa de piel": -4,
     "netsuke": -3, "marfilina": -3,
+
+    # === EXCLUSIONES EXPLICITAS DE DIEGO (01/10/2026) ===
+    # "no me interesan Boosters, todo lo que son posters, es mas, serigrafias
+    #  y cosas asi reproducibles en masa no me gustan para nada"
+    "poster": -6, "cartel": -5, "afiche": -5, "lamina": -5, "reproduccion": -5,
+    "serigrafia": -6, "litografia": -4, "offset": -6, "giclee": -6,
+    "impresion digital": -6, "edicion limitada": -2, "numerada": -1,
+    "ejemplares": -2, "tirada": -2, "estampa": -3, "grabado": -2,
+
+    # "no quiero nada de botellas de vino ni joyas en general"
+    "vino": -6, "botella": -5, "bodega": -4, "rioja": -5, "champagne": -5,
+    "whisky": -5, "licor": -5, "magnum": -4, "anada": -4, "denominacion": -3,
+    "joya": -6, "joyeria": -6, "bisuteria": -5, "gemelos": -4, "camafeo": -4,
     # Ornamento dorado y tallado: lo contrario del eje Shaker/Barragan/Judd
     "dorada": -4, "dorado": -3, "pan de oro": -4, "estucad": -4,
     "tallada": -3, "tallado": -3, "capitel": -3, "columna": -2,
