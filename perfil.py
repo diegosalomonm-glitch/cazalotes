@@ -139,6 +139,36 @@ GUSTA = {
     "bizette-lindet": 3, "moerenhout": 3, "trocme": 2, "urquiola": 3,
     "bentwood": 2, "openwork": 2, "wrought iron": 2, "chrome finish": 2,
     "cromado": 2, "polistireno": 1,
+
+    # === DE SUS FAVORITOS DE WALLAPOP (40 items, 7 listas) ===
+    # Su palabra: "racionalista" sale 4 veces entre sus favoritos y los
+    # vendedores espanoles la usan. Es la mas rentable de todas.
+    "racionalista": 3, "racionalistas": 3,
+
+    # FLEXOS: su lista mas grande, 72 items. No teniamos NADA de esto.
+    "flexo": 3, "lampara articulada": 3, "lampara de arquitecto": 3,
+    "lampara de trabajo": 3, "aplique articulado": 3, "brazo articulado": 3,
+    "swing arm": 3, "architect lamp": 3, "task lamp": 3, "desk lamp": 2,
+    "jielde": 3, "tolomeo": 3, "markslojd": 3, "portland": 2, "luxo": 3,
+    "anglepoise": 3, "naska loris": 3, "fase": 3, "lupela": 3, "gei": 2,
+    "lampara de sobremesa": 2, "lampara de pie": 2, "aplique": 2,
+
+    # SILLAS: segunda lista, 70 items.
+    "silla": 2, "sillas": 2, "butaca": 2, "sillon": 2, "taburete": 2,
+    "banqueta": 2, "silla de despacho": 3, "silla de oficina": 3,
+    "enea": 2, "anea": 2, "rejilla": 2, "cane": 2, "contrachapado": 2,
+
+    # Mesas: tercera y cuarta lista.
+    "mesa de centro": 2, "mesa de comedor": 2, "mesita": 2, "velador": 2,
+
+    # Disenadores y marcas que YA perseguia el solo
+    "carlo hauner": 3, "hauner": 2, "luigi brusotti": 3, "brusotti": 2,
+    "pino melis": 3, "simon gavina": 3, "philips": 2, "infraphil": 3,
+    "delaunay": 2,
+
+    # Lo raro, que confirmo con creces
+    "erotic": 2, "erotico": 2, "feria": 2, "mickey": 2, "atraccion": 2,
+    "cojin vintage": 2, "espejo": 2,
     "conciso": 1, "pesado": 1, "decadente": 2, "glamour": 2, "glamurosa": 2,
     "lounge": 2, "puffy": 2, "mesa de espejos": 3, "oculto": 2, "espiritual": 1,
     "maya": 2, "precolombino": 2, "crayones al oleo": 2, "oleo en plexiglas": 3,
