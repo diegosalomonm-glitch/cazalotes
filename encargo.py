@@ -82,7 +82,9 @@ CAJONERA_DORMITORIO = {
     "notas": (
         "Referencia: los armarios de dormitorio de Luis Barragan, a la altura de la puerta, "
         "sin lineas, muy sencillos. La puerta de Diego mide 200 cm, asi que la pieza tiene "
-        "que PASAR por ella."
+        "que PASAR por ella. Su referencia concreta es el armario de Ico Parisi para "
+        "Fratelli Reguitti: almacenaje italiano mid-century, no 'una comoda'. "
+        "Las comodas genericas las descarta explicitamente."
     ),
     # El ancho es el limite que no se negocia.
     "limites": {"mayor": 220, "segundo": 200, "menor": 70},
@@ -96,7 +98,9 @@ CAJONERA_DORMITORIO = {
               "armario", "mueble bajo", "chest of drawers", "dresser",
               "mueble auxiliar", "consola", "cajonero", "chiffonier"],
     "excluir": ["castellan", "isabelin", "barroc", "luis xv", "luis xvi", "renacimiento",
-                "bargueno", "religios", "vitrina ingles"],
+                "bargueno", "religios", "vitrina ingles", "luis felipe", "luis philippe",
+                "ikea", "malm", "koppang", "maisons du monde", "tallada", "tallado",
+                "marqueteria", "dorada", "estucad"],
 }
 
 

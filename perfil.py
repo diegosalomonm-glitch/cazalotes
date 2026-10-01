@@ -132,8 +132,8 @@ GUSTA = {
     "artesanal": 2, "hecho a mano": 2, "carpinteria": 2, "ebanisteria": 3,
 
     # --- DISENADORES extraidos de La Basilica Galeria (Barcelona) ---
-    "ico parisi": 3, "joe colombo": 3, "gavina": 3, "manfredo massironi": 3,
-    "ludvik volak": 3, "fratelli reguitti": 3, "oluce": 3, "kazuhide takahama": 3,
+    "ico parisi": 4,  # el armario que si le gusta es suyo "joe colombo": 3, "gavina": 3, "manfredo massironi": 3,
+    "ludvik volak": 3, "fratelli reguitti": 4,  # su referencia explicita de almacenaje "oluce": 3, "kazuhide takahama": 3,
     "harvey guzzini": 3, "guzzini": 2, "formanova": 3, "meurop": 3,
     "maitland-smith": 2, "berrocal": 3, "moscatelli": 3, "raumdesign": 2,
     "bizette-lindet": 3, "moerenhout": 3, "trocme": 2, "urquiola": 3,
@@ -141,6 +141,14 @@ GUSTA = {
     "cromado": 2, "polistireno": 1,
 
     # === DE SUS FAVORITOS DE WALLAPOP (40 items, 7 listas) ===
+    # AVISO DE LECTURA: el bloque de comodas/cajoneras/aparadores de esos
+    # favoritos (IKEA Malm, KOPPANG, Maisons du Monde, Luis Philippe, comoda
+    # blanca de 30 EUR) NO es gusto: era busqueda activa para el dormitorio.
+    # Diego lo confirmo: "las comodas y cajoneras son una mierda, ignoralo".
+    # La UNICA excepcion es el armario de Ico Parisi para Fratelli Reguitti.
+    # O sea: no quiere "una comoda", quiere almacenaje italiano mid-century.
+    # Por eso los negativos de anticuario (luis felipe, marqueteria, tallado)
+    # se quedan como estan. Estaban bien.
     # Su palabra: "racionalista" sale 4 veces entre sus favoritos y los
     # vendedores espanoles la usan. Es la mas rentable de todas.
     "racionalista": 3, "racionalistas": 3,
