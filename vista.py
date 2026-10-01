@@ -106,6 +106,9 @@ def atributos(l):
         "materiales": mats[:3],
         "periodo": per[0] if per else None,
         "dims": " x ".join(f"{v:.0f}" for v in dims[0]) + " cm" if dims else None,
+        # las tres medidas ordenadas de mayor a menor, para filtrar por ancho,
+        # alto y fondo por separado en el buscador de la pagina
+        "d3": [round(v) for v in dims[0]] if dims else None,
         "ubicacion": l.get("ubicacion") or ("Madrid" if l.get("casa") in CASAS else None),
     }
 
@@ -127,6 +130,7 @@ def preparar(lotes):
             "img": l.get("imagen"),
             "url": l["url"],
             "dims": a["dims"],
+            "d3": a["d3"],
             "lado": round(l.get("lado_mayor_cm") or 0),
             "mats": a["materiales"],
             "periodo": a["periodo"],
