@@ -197,7 +197,10 @@ NO_GUSTA_FUERTE = {
     "santa ": -4, "inmaculada": -5, "sagrado corazon": -5, "via crucis": -5,
     "nacimiento": -4, "belen": -4, "piedad": -4, "anunciacion": -5,
     "apostol": -4, "evangelista": -4, "eclesiastic": -4, "liturgic": -4,
-    "caliz": -4, "custodia": -4, "reliquia": -4, "retablo": -4, "icono": -3,
+    "reliquia": -4, "retablo": -4,
+    # Quitadas por ambiguas: "icono" (salta en "icono del diseno"),
+    # "caliz" (en "piedra caliza") y "custodia" (en texto corriente).
+    "icono religioso": -4, "caliz de plata": -4, "custodia procesional": -4,
 
     # Mueble de anticuario clasico, dijo que no le interesa nada
     "castellan": -4, "isabelin": -4, "fernandin": -4, "victorian": -4,

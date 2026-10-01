@@ -13,14 +13,21 @@ import perfil
 from casas import CASAS, coste_total
 
 
-def _encaja(clave, texto):
+def _encaja(clave, texto, estricto=False):
     """
-    Subcadena normal, salvo claves cortas o con digitos ("40s", "60s"), donde
-    exigimos limite de palabra. Sin esto, "40s" aparece dentro de cualquier
-    numero y lo ensucia todo.
+    Limite de palabra por la IZQUIERDA siempre que haga falta.
+
+    Sin esto la cosa se llena de falsos positivos reales que vimos auditando:
+      'barroc'   saltaba en SUBARROCA (apellido catalan)
+      'caliz'    saltaba en "piedra caliza" y en "localiza"
+      'santo'    saltaba dentro de otras palabras
+    Solo limite izquierdo, porque muchas claves son raices a proposito
+    ('religios' tiene que pillar religioso y religiosa).
     """
     if len(clave) <= 4 or any(c.isdigit() for c in clave):
         return re.search(r"(?<![a-z0-9])" + re.escape(clave) + r"(?![a-z0-9])", texto) is not None
+    if estricto:
+        return re.search(r"(?<![a-z0-9])" + re.escape(clave), texto) is not None
     return clave in texto
 
 
@@ -57,13 +64,13 @@ def puntuar(lote):
     # --- rechazo
     descartado = False
     for k, peso in perfil.NO_GUSTA_FUERTE.items():
-        if _encaja(limpiar(k), txt):
+        if _encaja(limpiar(k), txt, estricto=True):
             pts += peso
             banderas.append(f"NO: {k}")
             if peso <= -4:
                 descartado = True
     for k, peso in perfil.NO_GUSTA_SUAVE.items():
-        if _encaja(limpiar(k), txt):
+        if _encaja(limpiar(k), txt, estricto=True):
             pts += peso
 
     # --- gran formato: su gusto y la ineficiencia del mercado apuntan igual
