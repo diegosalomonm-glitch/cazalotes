@@ -58,11 +58,37 @@ python3 -m venv .venv
 .venv/bin/pip install beautifulsoup4 lxml requests
 cp config.py config_local.py    # put your own contact address in it
 
-.venv/bin/python run.py              # read all the houses, then rank
-.venv/bin/python run.py --informe    # re-rank what is already stored
-.venv/bin/python encargo.py          # run a brief with hard measurements
+.venv/bin/python run.py              # read the live catalogues, then rank
+.venv/bin/python shopify.py          # read the two Shopify shops
+.venv/bin/python vista.py            # build the page: datos/vista.html
+open datos/vista.html                # browse, search, vote
+
+.venv/bin/python run.py --informe    # re-rank what is already stored, in the terminal
+.venv/bin/python run.py --historico  # also pull the past-sales archive (hours, do it once)
 .venv/bin/python marketplaces.py     # build manual search links for sites with no API
 ```
+
+## The page
+
+`vista.py` writes one self-contained HTML file. Everything on sale that does not clash
+outright with my taste goes in, about 4,000 lots, drawn 120 at a time.
+
+The search panel takes a brief the way I would say it out loud: what kind of thing
+(the page expands "storage" into cómoda, cajonera, aparador, credenza and the rest of the
+catalogue vocabulary), colour, width, height and depth separately, whether it has to fit
+through a door, a ceiling on the real cost with the premium included, materials, period,
+and words to exclude. Briefs can be saved by name.
+
+Under the panel, the same search is offered as ready-made links to Wallapop, Milanuncios,
+eBay, Etsy, Vinted and Todocolección, with the query and the price ceiling already filled
+in. Those sites cannot be read automatically, but they can be opened in one click.
+
+Each lot shows four separate scores (taste, opportunity, logistics, confidence) rather than
+one opaque number, why it matched, and what the catalogue wording gives away. Votes are kept
+in the browser and exported as JSON, which is how the taste profile gets corrected.
+
+Photographs come at 500 px in the grid and at full size in the detail view. The listing
+pages only link a 260 px thumbnail, which is why an earlier version looked blurry.
 
 ## Layout
 
@@ -75,15 +101,24 @@ cp config.py config_local.py    # put your own contact address in it
 | `shopify.py` | Shops with an open `products.json` |
 | `puntuar.py` | Scoring, and the catalogue-vocabulary flags |
 | `encargo.py` | Briefs with hard dimensional limits |
-| `comparables.py` | Past prices. Works, but the matching needs rebuilding |
+| `comparables.py` | Past hammer prices, matched within category and period |
+| `vista.py` | Builds the page: scores, attributes, image sizes |
+| `plantilla.py` | The page itself: search panel, grid, detail view |
 | `marketplaces.py` | Search links for sites that cannot be read automatically |
 
 ## Where it is weak
 
-`comparables.py` matches on shared words, and Alcalá's archive is mostly 18th century Spanish
-antiques, so a 1960s sideboard gets compared against a Carlos III writing desk and the verdict
-is meaningless. It needs to match within category and period. Until then, do not trust the
-number it prints.
+`comparables.py` now only compares within the same category and a compatible period, uses
+hammer prices where the archive has them, and refuses to give a verdict on fewer than six
+comparables. That fixed the nonsense (it used to compare a 1960s sideboard against a
+Carlos III writing desk), but it exposed the real limit: Alcalá's archive has 465 furniture
+lots and nearly all are antiques. It gives a verdict on about a quarter of the lots that
+match my taste, mostly sculpture, painting and ceramics. For mid-century furniture there is
+no base to compare against yet.
+
+The storage I am actually looking for is rare in these seven sources: nine lots out of
+4,334 at last count. For that kind of piece the private-sale sites are where the stock is,
+and those are the ones that cannot be read.
 
 The taste profile is my reading of my own taste, which is not the same as my taste. It gets
 better when I feed it things I actually chose.

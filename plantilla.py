@@ -53,6 +53,10 @@ PLANTILLA = r"""<!doctype html>
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+/* IMPRESCINDIBLE. Sin esto, cualquier regla con display (el velo del detalle
+   usa display:flex) anula el atributo hidden: el velo quedaba SIEMPRE encima,
+   la pagina se veia gris y no se podia tocar nada. */
+[hidden]{display:none!important}
 body{margin:0;background:var(--yeso);color:var(--tinta);font-family:var(--ui);
   font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 
@@ -180,6 +184,17 @@ dd{margin:0;min-width:0;overflow-wrap:anywhere}
 .paso.izq{left:0} .paso.der{right:0}
 .nada{padding:70px 20px;text-align:center;color:var(--gris);font-family:var(--etq);
   letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+.mas{display:block;margin:6px auto 40px;padding:11px 26px;font-family:var(--etq);
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+  background:var(--caja);color:var(--tinta);border:1px solid var(--borde);border-radius:0}
+.fuera{max-width:1700px;margin:0 auto;padding:0 22px 16px;font-size:12.5px;
+  color:var(--gris);display:flex;gap:8px 14px;flex-wrap:wrap;align-items:baseline}
+.fuera b{font-family:var(--etq);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;font-weight:600}
+.fuera a{color:var(--tinta);text-decoration:underline;text-underline-offset:3px}
+.fuera a:hover{color:var(--rosa)}
+.hoja .desc{font-size:13px;line-height:1.55;color:var(--gris);margin:0;
+  max-height:9.5em;overflow:auto}
 
 @media(pointer:coarse){ .v{min-height:44px} .chip{min-height:40px} }
 @media(max-width:860px){ .hoja{grid-template-columns:1fr;max-height:88vh}
@@ -199,7 +214,7 @@ dd{margin:0;min-width:0;overflow-wrap:anywhere}
     <option value="lg">por log&iacute;stica</option><option value="cf">por confianza</option>
     <option value="precio">por precio</option>
   </select>
-  <button id="abrir" aria-expanded="false">encargo</button>
+  <button id="abrir" class="on" aria-expanded="true">encargo</button>
   <button id="solonov">sin vender</button>
   <button id="nitidas">solo n&iacute;tidas</button>
   <button id="ocultano">ocultar descartados</button>
@@ -208,10 +223,12 @@ dd{margin:0;min-width:0;overflow-wrap:anywhere}
 </div>
 <div class="cuenta"><b id="num">0</b> de __TOTAL__ lotes &middot; __FECHA__<span id="pobres"></span></div></header>
 
-<section class="panel" id="panel" hidden><div class="panel-in">
+<section class="panel" id="panel"><div class="panel-in">
   <div class="grupo">
     <h3>Qu&eacute; busco</h3>
     <div class="fichas" id="tipos"></div>
+    <h3 style="margin-top:4px">Color</h3>
+    <div class="fichas" id="colores"></div>
     <p class="ayuda">Si no marcas nada, busca en todo.</p>
   </div>
   <div class="grupo">
@@ -232,7 +249,7 @@ dd{margin:0;min-width:0;overflow-wrap:anywhere}
   <div class="grupo">
     <h3>Presupuesto</h3>
     <label class="ayuda">tope en euros, coste real con comisi&oacute;n incluida
-      <input type="number" id="tope" placeholder="600" min="0" step="25"></label>
+      <input type="number" id="tope" placeholder="sin tope" value="600" min="0" step="25"></label>
     <h3 style="margin-top:4px">Materiales</h3>
     <div class="fichas" id="mats"></div>
   </div>
@@ -248,15 +265,20 @@ dd{margin:0;min-width:0;overflow-wrap:anywhere}
       <select id="guardados" aria-label="Encargos guardados" style="min-width:130px"></select>
     </div>
   </div>
-</div></section>
+</div>
+<div class="fuera" id="fuera"></div>
+</section>
 
 <main id="rejilla" class="rejilla" aria-label="Lotes encontrados"></main>
-<div id="nada" class="nada" hidden>Nada encaja con este encargo</div>
+<button id="mas" class="mas" hidden>cargar m&aacute;s</button>
+<div id="nada" class="nada" hidden>Nada encaja con este encargo en las fuentes que puedo leer. Prueba los enlaces de arriba.</div>
 <div id="velo" class="velo" hidden></div>
 
 <script>
 const DATOS = __DATOS__;
-const K='cazalotes.votos', KP='cazalotes.pobres', KE='cazalotes.encargos';
+/* KP lleva version: las marcas viejas de "foto pobre" se hicieron contra las
+   miniaturas de 260 px y ya no valen ahora que la rejilla carga las de 500. */
+const K='cazalotes.votos', KP='cazalotes.pobres.v2', KE='cazalotes.encargos';
 let votos={}, pobres={}, encargos={};
 try{ votos=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
 try{ pobres=JSON.parse(localStorage.getItem(KP)||'{}'); }catch(e){}
@@ -289,11 +311,25 @@ const TIPOS={
 const MATS=['roble','nogal','teca','palisandro','pino','haya','bronce','marmol',
             'hierro','acero','laton','ceramica','cristal','cuero','mimbre','formica'];
 const EPOCAS=['1950','1960','1970','1980','s. XIX','s. XVIII'];
+const COLS=['blanco','negro','gris','rojo','azul','verde','amarillo','naranja','marron','dorado','cromado'];
+/* palabra con la que se busca cada tipo en las webs de fuera */
+const PRINCIPAL={almacenaje:'comoda',asiento:'silla',mesa:'mesa',luz:'lampara',
+  escultura:'escultura',pintura:'cuadro',estanteria:'estanteria',espejo:'espejo',
+  alfombra:'alfombra',ceramica:'ceramica'};
+
+/* Sin tildes y en minusculas: el catalogo escribe "Cómoda" y el vocabulario
+   "comoda". Sin normalizar, la mitad de las busquedas fallaban en silencio. */
+const plano=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+DATOS.forEach(d=>{
+  d._t=plano(d.titulo+' '+(d.desc||'')+' '+(d.mats||[]).join(' ')+' '+d.fuente);
+  d._tt=plano(d.titulo+' '+(d.desc||'').slice(0,160));
+});
 
 function chips(cont,lista){
   $(cont).innerHTML=lista.map(x=>'<button class="chip" data-x="'+esc(x)+'">'+esc(x)+'</button>').join('');
 }
 chips('#tipos',Object.keys(TIPOS)); chips('#mats',MATS); chips('#epocas',EPOCAS);
+chips('#colores',COLS);
 document.addEventListener('click',e=>{
   const c=e.target.closest('.chip'); if(c){ c.classList.toggle('on'); }
 });
@@ -335,13 +371,14 @@ function ficha(d,i){
 
 function leerEncargo(){
   return {
-    q:$('#q').value.toLowerCase().trim(),
+    q:plano($('#q').value).trim(),
     fuente:$('#fuente').value, orden:$('#orden').value,
     tipos:marcados('#tipos'), mats:marcados('#mats'), epocas:marcados('#epocas'),
+    cols:marcados('#colores'),
     wmax:+$('#wmax').value||0, hmax:+$('#hmax').value||0, dmax:+$('#dmax').value||0,
     puerta:$('#puerta').checked?(+$('#puertacm').value||0):0,
     tope:+$('#tope').value||0,
-    excluir:$('#excluir').value.toLowerCase().split(',').map(s=>s.trim()).filter(Boolean),
+    excluir:plano($('#excluir').value).split(',').map(s=>s.trim()).filter(Boolean),
     nov:$('#solonov').classList.contains('on'),
     nit:$('#nitidas').classList.contains('on'),
     ocu:$('#ocultano').classList.contains('on')
@@ -349,14 +386,17 @@ function leerEncargo(){
 }
 
 function cumple(d,E){
-  const txt=(d.titulo+' '+(d.mats||[]).join(' ')+' '+d.fuente).toLowerCase();
-  if(E.q&&!txt.includes(E.q))return false;
+  /* texto libre: todas las palabras tienen que aparecer, en cualquier orden */
+  if(E.q&&!E.q.split(/\s+/).every(w=>d._t.includes(w)))return false;
   if(E.fuente&&d.fuente!==E.fuente)return false;
-  if(E.excluir.some(x=>txt.includes(x)))return false;
+  if(E.excluir.some(x=>d._t.includes(x)))return false;
   if(E.tipos.length){
+    /* el tipo se busca en el titulo y el arranque de la descripcion, no en
+       todo el texto: asi "mesa" no cuela un cuadro que menciona una mesa */
     const pal=E.tipos.flatMap(t=>TIPOS[t]||[]);
-    if(!pal.some(p=>txt.includes(p)))return false;
+    if(!pal.some(p=>d._tt.includes(p)))return false;
   }
+  if((E.cols||[]).length&&!E.cols.some(c=>(d.col||[]).includes(c)))return false;
   if(E.mats.length&&!E.mats.some(m=>(d.mats||[]).includes(m)))return false;
   if(E.epocas.length&&!E.epocas.includes(d.periodo))return false;
   if(E.tope){ const c=d.total!=null?d.total:d.salida; if(c!=null&&c>E.tope)return false; }
@@ -379,11 +419,49 @@ function pintar(){
   visibles=DATOS.filter(d=>cumple(d,E)).sort((a,b)=>
     E.orden==='precio' ? (a.salida==null?1e9:a.salida)-(b.salida==null?1e9:b.salida)
                        : b[E.orden]-a[E.orden]);
-  $('#rejilla').innerHTML=visibles.map(ficha).join('');
+  $('#rejilla').innerHTML=''; pintados=0; pintarMas();
   $('#nada').hidden=visibles.length>0;
   $('#num').textContent=visibles.length;
   const np=Object.keys(pobres).length;
   $('#pobres').textContent=np?' · '+np+' con foto de baja resolución':'';
+  enlacesFuera(E);
+}
+
+/* Se pintan de 120 en 120. Con 4.000 fichas de golpe el navegador se ahoga. */
+let pintados=0; const TANDA=120;
+function pintarMas(){
+  const trozo=visibles.slice(pintados,pintados+TANDA);
+  $('#rejilla').insertAdjacentHTML('beforeend',
+    trozo.map((d,j)=>ficha(d,pintados+j)).join(''));
+  pintados+=trozo.length;
+  $('#mas').hidden=pintados>=visibles.length;
+  $('#mas').textContent='cargar más ('+(visibles.length-pintados)+' restantes)';
+}
+
+/* Wallapop, Milanuncios y compania no se pueden leer automaticamente, pero si
+   se puede abrir cada una con la busqueda ya escrita y el tope de precio puesto. */
+function enlacesFuera(E){
+  const partes=[];
+  if(E.q)partes.push(E.q);
+  else if(E.tipos.length)partes.push(PRINCIPAL[E.tipos[0]]||E.tipos[0]);
+  if((E.cols||[]).length){
+    const c=E.cols[0]; partes.push(partes[0]&&/a$/.test(partes[0])&&/o$/.test(c)?c.slice(0,-1)+'a':c); }
+  if(E.mats.length)partes.push(E.mats[0]);
+  const consulta=partes.join(' ').trim();
+  const caja=$('#fuera');
+  if(!consulta){ caja.innerHTML=''; return; }
+  const q=encodeURIComponent(consulta), t=E.tope||'';
+  const sitios=[
+    ['Wallapop','https://es.wallapop.com/search?keywords='+q+(t?'&max_sale_price='+t:'')+'&order_by=newest'],
+    ['Milanuncios','https://www.milanuncios.com/anuncios/?s='+q+(t?'&hasta='+t:'')],
+    ['eBay','https://www.ebay.es/sch/i.html?_nkw='+q+(t?'&_udhi='+t:'')],
+    ['Etsy','https://www.etsy.com/es/search?q='+q+(t?'&max='+t:'')],
+    ['Vinted','https://www.vinted.es/catalog?search_text='+q+(t?'&price_to='+t:'')],
+    ['Todocolección','https://www.todocoleccion.net/buscador?bu='+q]
+  ];
+  caja.innerHTML='<b>Buscar «'+esc(consulta)+'» fuera</b>'
+    +sitios.map(s=>'<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[0]+'</a>').join('')
+    +'<span>Estas webs no dejan leerlas automáticamente; se abren con tu búsqueda ya puesta.</span>';
 }
 
 document.addEventListener('load',function(e){
@@ -409,7 +487,8 @@ function detalle(i){
     .filter(p=>p[1]).map(p=>'<dt>'+esc(p[0])+'</dt><dd>'+esc(p[1])+'</dd>').join('');
   $('#velo').innerHTML='<div class="hoja" role="dialog" aria-modal="true" aria-label="'
     +esc(d.titulo)+'" tabindex="-1">'
-    +'<div class="foto">'+(d.img?'<img src="'+esc(d.img)+'" alt="'+esc(d.titulo)+'">'
+    +'<div class="foto">'+(d.img?'<img src="'+esc(d.imgG||d.img)+'" data-chica="'+esc(d.img)
+        +'" onerror="if(this.src!==this.dataset.chica)this.src=this.dataset.chica" alt="'+esc(d.titulo)+'">'
         :'<div class="novale">sin fotografía</div>')+'</div>'
     +'<div class="info">'
     +'<button class="cerrar" id="x" aria-label="Cerrar">✕</button>'
@@ -418,6 +497,7 @@ function detalle(i){
         ?'<em>'+Math.round(d.total)+' € puestos en casa</em>'
         :(d.fijo?'<em>precio final</em>':''))+'</div>'
     +'<h2>'+esc(d.titulo)+'</h2>'
+    +(d.desc?'<p class="desc">'+esc(d.desc)+'</p>':'')
     +'<dl>'+filas+'</dl>'
     +'<div class="medidor">'+med(d.g,'gusto')+med(d.o,'oport',1)+med(d.lg,'logís')+med(d.cf,'conf')+'</div>'
     +(d.porque.length?'<div class="caja bien">'+esc(d.porque.join(' · '))+'</div>':'')
@@ -446,7 +526,15 @@ document.addEventListener('click',function(e){
   if(bv){ e.stopPropagation();
     const id=bv.dataset.id,k=bv.dataset.v;
     if(votos[id]===k) delete votos[id]; else votos[id]=k;
-    guardarTodo(); const ab=actual; pintar(); if(ab>=0)detalle(ab); return; }
+    guardarTodo();
+    /* se actualiza en el sitio: repintar todo te devolveria al principio */
+    document.querySelectorAll('.v').forEach(b=>{
+      if(b.dataset.id===id) b.classList.toggle('on',votos[id]===b.dataset.v); });
+    document.querySelectorAll('.ficha').forEach(f=>{
+      const d=visibles[+f.dataset.i];
+      if(d&&d.id===id) f.classList.toggle('apagada',votos[id]==='x'||votos[id]==='0'); });
+    return; }
+  if(e.target.closest('#mas')){ pintarMas(); return; }
   if(e.target.closest('#x')||e.target.id==='velo'){ cerrar(); return; }
   if(e.target.closest('#sig')||e.target.closest('#des')){ mover(1); return; }
   if(e.target.closest('#ant')){ mover(-1); return; }
@@ -471,6 +559,13 @@ $('#abrir').addEventListener('click',e=>{
 ['solonov','nitidas','ocultano'].forEach(id=>$('#'+id).addEventListener('click',e=>{
   e.currentTarget.classList.toggle('on'); pintar(); }));
 $('#aplicar').addEventListener('click',pintar);
+/* Enter en cualquier campo del panel lanza la busqueda */
+$('#panel').addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.tagName==='INPUT')pintar(); });
+/* al llegar al final de la pagina se carga la tanda siguiente sola */
+if('IntersectionObserver' in window){
+  new IntersectionObserver(es=>{ if(es[0].isIntersecting&&!$('#mas').hidden)pintarMas(); },
+    {rootMargin:'600px'}).observe($('#mas'));
+}
 $('#limpiar').addEventListener('click',()=>{
   ['wmax','hmax','dmax','tope','excluir','q'].forEach(id=>$('#'+id).value='');
   $('#puerta').checked=false;
@@ -494,13 +589,18 @@ $('#guardados').addEventListener('change',e=>{
   $('#tope').value=E.tope||''; $('#excluir').value=(E.excluir||[]).join(', ');
   $('#puerta').checked=!!E.puerta; if(E.puerta)$('#puertacm').value=E.puerta;
   document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
-  [['#tipos',E.tipos],['#mats',E.mats],['#epocas',E.epocas]].forEach(([sel,arr])=>
+  [['#tipos',E.tipos],['#mats',E.mats],['#epocas',E.epocas],['#colores',E.cols]].forEach(([sel,arr])=>
     (arr||[]).forEach(x=>{ const c=document.querySelector(sel+' .chip[data-x="'+x+'"]');
       if(c)c.classList.add('on'); }));
   ['solonov','nitidas','ocultano'].forEach((id,i)=>
     $('#'+id).classList.toggle('on',[E.nov,E.nit,E.ocu][i]));
   pintar(); });
 pintarGuardados();
+
+/* en pantalla estrecha el panel abierto empuja los resultados muy abajo */
+if(window.innerWidth<700){
+  $('#panel').hidden=true; $('#abrir').classList.remove('on');
+  $('#abrir').setAttribute('aria-expanded','false'); }
 
 $('#exportar').addEventListener('click',function(){
   const ix={}; DATOS.forEach(d=>{ ix[d.id]=d; });

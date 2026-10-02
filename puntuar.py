@@ -127,6 +127,10 @@ def puntuar(lote):
     lote["banderas"] = banderas
     lote["avisos"] = avisos
     lote["descartado"] = descartado or fuera_presupuesto
+    # "rechazado" = choca de frente con su gusto (religioso, joyeria, vino...).
+    # Va aparte del presupuesto: la pagina tiene su propio filtro de precio y
+    # no debe perder un lote solo porque pase de 600 EUR.
+    lote["rechazado"] = descartado
 
     if salida:
         _, desglose = coste_total(salida, lote["casa"])
@@ -138,6 +142,18 @@ def ranking(lotes, minimo=4):
     lotes = [l for l in lotes if not l.get("historico")]
     puntuados = [puntuar(dict(l)) for l in lotes]
     vivos = [l for l in puntuados if not l["descartado"] and l["puntos"] >= minimo]
+    return sorted(vivos, key=lambda l: (-l["puntos"], l.get("salida") or 0))
+
+
+def todos_los_vivos(lotes):
+    """
+    Para la pagina: TODO lo que esta a la venta y no choca de frente con su
+    gusto, puntue lo que puntue. Un encargo concreto ("comoda blanca") tiene
+    que poder encontrar piezas que el perfil de gusto no habria subido nunca.
+    """
+    lotes = [l for l in lotes if not l.get("historico")]
+    puntuados = [puntuar(dict(l)) for l in lotes]
+    vivos = [l for l in puntuados if not l["rechazado"]]
     return sorted(vivos, key=lambda l: (-l["puntos"], l.get("salida") or 0))
 
 
