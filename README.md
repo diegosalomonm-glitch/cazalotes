@@ -79,9 +79,12 @@ catalogue vocabulary), colour, width, height and depth separately, whether it ha
 through a door, a ceiling on the real cost with the premium included, materials, period,
 and words to exclude. Briefs can be saved by name.
 
-Under the panel, the same search is offered as ready-made links to Wallapop, Milanuncios,
-eBay, Etsy, Vinted and Todocolección, with the query and the price ceiling already filled
-in. Those sites cannot be read automatically, but they can be opened in one click.
+Under the panel, the same search is offered as ready-made links to Catawiki, Wallapop,
+Milanuncios, eBay, Etsy, Vinted and Todocolección, with the query and the price ceiling
+already filled in. Those sites cannot be read automatically, but they can be opened in one
+click. Catawiki sits behind Akamai and returns 403 to any automated request, `robots.txt`
+included, so it stays manual; its own "Guardar búsqueda" sends alerts. Its buyer fee is 9%
+plus a fixed 3 €, VAT included (buyer terms, September 2026).
 
 Each lot shows four separate scores (taste, opportunity, logistics, confidence) rather than
 one opaque number, why it matched, and what the catalogue wording gives away. Votes are kept

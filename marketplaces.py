@@ -72,6 +72,13 @@ PRIORITARIAS = [
 ]
 
 SITIOS = {
+    "catawiki": {
+        "nombre": "Catawiki",
+        "url": "https://www.catawiki.com/es/s?q={q}",
+        "nota": "Akamai bloquea toda lectura automatica (403 hasta en robots.txt). "
+                "Buscar a mano y usar 'Guardar busqueda' para recibir alertas. "
+                "OJO con la seccion de arte: hay obra generada por IA vendida como pintura.",
+    },
     "wallapop": {
         "nombre": "Wallapop",
         "url": "https://es.wallapop.com/app/search?keywords={q}&latitude=40.4168&longitude=-3.7038",
@@ -126,8 +133,8 @@ def plan_de_busqueda(incluir_todas=False):
                     [(a, enlaces(a)) for a in perfil.ARTISTAS_ALCANZABLES]))
 
     palabras = PALABRAS_WALLAPOP if incluir_todas else PRIORITARIAS
-    bloques.append(("PALABRAS CLAVE — Wallapop y Etsy",
-                    [(p, enlaces(p, ["wallapop", "etsy"])) for p in palabras]))
+    bloques.append(("PALABRAS CLAVE — Catawiki, Wallapop y Etsy",
+                    [(p, enlaces(p, ["catawiki", "wallapop", "etsy"])) for p in palabras]))
 
     if incluir_todas:
         bloques.append(("MATERIAL x OBJETO — Wallapop (los materiales solos no sirven)",

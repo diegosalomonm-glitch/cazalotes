@@ -452,6 +452,9 @@ function enlacesFuera(E){
   if(!consulta){ caja.innerHTML=''; return; }
   const q=encodeURIComponent(consulta), t=E.tope||'';
   const sitios=[
+    /* Catawiki: Akamai bloquea cualquier lectura automatica, robots.txt
+       incluido. Se abre a mano; dentro, "Guardar busqueda" te manda alertas. */
+    ['Catawiki','https://www.catawiki.com/es/s?q='+q+(t?'&max_price='+t:'')],
     ['Wallapop','https://es.wallapop.com/search?keywords='+q+(t?'&max_sale_price='+t:'')+'&order_by=newest'],
     ['Milanuncios','https://www.milanuncios.com/anuncios/?s='+q+(t?'&hasta='+t:'')],
     ['eBay','https://www.ebay.es/sch/i.html?_nkw='+q+(t?'&_udhi='+t:'')],

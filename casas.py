@@ -83,6 +83,28 @@ CASAS = {
     },
 }
 
+# Catawiki NO se rastrea: Akamai devuelve 403 a cualquier lectura automatica,
+# robots.txt incluido (comprobado 2026-10-04). Se busca a mano desde los enlaces
+# de la pagina, y sus alertas nativas ("Guardar busqueda") hacen el seguimiento.
+CATAWIKI = {
+    "nombre": "Catawiki",
+    "busqueda": "https://www.catawiki.com/es/s?q={q}&max_price={tope}",
+    # Condiciones del comprador, septiembre 2026: "9 % del precio de compra mas
+    # una cantidad fija (...) suele ser de 3 EUR". Incluye el IVA.
+    "comision": 0.09,
+    "fijo": 3.0,
+    "comision_nota": "9 % + 3 EUR fijos, IVA incluido. Sobre 100 EUR: 112 EUR. "
+                     "Mas el envio, que en muebles es tarifa plana orientativa que "
+                     "ajustan despues de la compra, con entrega de 2 a 5 semanas.",
+    "nota": "La seccion de ARTE esta contaminada con obra generada por IA vendida "
+            "como pintura (ver investigacion). Mueble y diseno es donde si funciona.",
+}
+
+
+def coste_catawiki(precio, envio=0.0):
+    return precio + precio * CATAWIKI["comision"] + CATAWIKI["fijo"] + envio
+
+
 # Odalys va aparte: es Shopify, con API JSON publica y sin clave.
 ODALYS = {
     "nombre": "Casa de Subastas Odalys",
