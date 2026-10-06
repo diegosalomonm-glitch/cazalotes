@@ -125,7 +125,11 @@ def puntuar(lote):
     lote["puntos"] = pts
     lote["razones"] = razones
     lote["banderas"] = banderas
-    lote["avisos"] = avisos
+    # avisos que trae la propia fuente (Etsy: nuevo/no vintage, envio fuera de
+    # la UE, moneda distinta) van delante de los del perfil
+    lote["avisos"] = list(lote.get("avisos_fuente") or []) + avisos
+    if lote.get("vintage") is False:
+        banderas.insert(0, "pieza NUEVA, no vintage")
     lote["descartado"] = descartado or fuera_presupuesto
     # "rechazado" = choca de frente con su gusto (religioso, joyeria, vino...).
     # Va aparte del presupuesto: la pagina tiene su propio filtro de precio y

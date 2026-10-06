@@ -184,6 +184,8 @@ dd{margin:0;min-width:0;overflow-wrap:anywhere}
 .paso.izq{left:0} .paso.der{right:0}
 .nada{padding:70px 20px;text-align:center;color:var(--gris);font-family:var(--etq);
   letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+.pie{max-width:1700px;margin:0 auto;padding:18px 22px 30px;font-size:11.5px;
+  color:var(--gris);border-top:1px solid var(--borde)}
 .mas{display:block;margin:6px auto 40px;padding:11px 26px;font-family:var(--etq);
   font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
   background:var(--caja);color:var(--tinta);border:1px solid var(--borde);border-radius:0}
@@ -273,6 +275,8 @@ dd{margin:0;min-width:0;overflow-wrap:anywhere}
 <button id="mas" class="mas" hidden>cargar m&aacute;s</button>
 <div id="nada" class="nada" hidden>Nada encaja con este encargo en las fuentes que puedo leer. Prueba los enlaces de arriba.</div>
 <div id="velo" class="velo" hidden></div>
+<footer class="pie">The term 'Etsy' is a trademark of Etsy, Inc. This Application uses Etsy's API,
+but is not endorsed or certified by Etsy.</footer>
 
 <script>
 const DATOS = __DATOS__;
@@ -484,8 +488,9 @@ function detalle(i){
   actual=i; const d=visibles[i]; if(!d)return;
   const v=votos[d.id];
   const filas=[['fuente',d.fuente],['lote',d.lote],['medidas',d.dims||'no declaradas'],
-    ['periodo',d.periodo],['materiales',(d.mats||[]).join(', ')],['dónde',d.donde],
+    ['periodo',d.epoca||d.periodo],['materiales',(d.mats||[]).join(', ')],['dónde',d.donde],
     ['salida',d.salida!=null?Math.round(d.salida)+' €':null],
+    ['precio original',d.orig&&!/ EUR$/.test(d.orig)?d.orig:null],
     ['coste real',d.total?Math.round(d.total)+' € ('+(d.recargo||0)+' % encima)':null]]
     .filter(p=>p[1]).map(p=>'<dt>'+esc(p[0])+'</dt><dd>'+esc(p[1])+'</dd>').join('');
   $('#velo').innerHTML='<div class="hoja" role="dialog" aria-modal="true" aria-label="'

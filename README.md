@@ -60,6 +60,7 @@ cp config.py config_local.py    # put your own contact address in it
 
 .venv/bin/python run.py              # read the live catalogues, then rank
 .venv/bin/python shopify.py          # read the two Shopify shops
+.venv/bin/python etsy.py             # Etsy, through its official API (needs keys, see below)
 .venv/bin/python vista.py            # build the page: datos/vista.html
 open datos/vista.html                # browse, search, vote
 
@@ -67,6 +68,23 @@ open datos/vista.html                # browse, search, vote
 .venv/bin/python run.py --historico  # also pull the past-sales archive (hours, do it once)
 .venv/bin/python marketplaces.py     # build manual search links for sites with no API
 ```
+
+## Etsy
+
+Etsy is read through its official Open API v3, under a personal-access app approved on
+2 October 2026. It needs two values in `config_local.py`, which is never committed:
+`ETSY_KEYSTRING` and `ETSY_SHARED_SECRET`. Etsy requires both, joined by a colon, in the
+`x-api-key` header.
+
+Two of Etsy's API terms shape how this works. Content may not be shown more than 24 hours
+older than on Etsy itself, and may not be stored longer than needed. So Etsy listings go to
+`datos/etsy.json`, which is overwritten on every run and never accumulated, and the page
+drops them automatically once they are more than 24 hours old. The page also carries the
+trademark notice the terms require.
+
+Each Etsy listing shows the original price and currency; the euro figure used for filtering
+is an approximate conversion. Listings Etsy marks as recent are flagged as new rather than
+vintage, and shops outside the EU are flagged for customs and import VAT.
 
 ## The page
 

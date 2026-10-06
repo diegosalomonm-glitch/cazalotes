@@ -25,6 +25,7 @@ from casas import CASAS
 from encargo import dimensiones
 from plantilla import PLANTILLA
 from puntuar import ranking, todos_los_vivos
+from etsy import cargar_si_fresco
 from scraper import DIR_DATOS
 
 
@@ -164,6 +165,8 @@ def fotos(url):
     """
     if not url:
         return None, None
+    if "etsystatic.com" in url:
+        return url, None            # la grande viene aparte en imagen_grande
     if RE_THUMB.search(url):
         return RE_THUMB.sub("/img/thumbs/500/", url), RE_THUMB.sub("/img/", url)
     if "cdn.shopify.com" in url:
@@ -179,6 +182,7 @@ def preparar(lotes):
         a = atributos(l)
         c = l.get("coste") or {}
         chica, grande = fotos(l.get("imagen"))
+        grande = l.get("imagen_grande") or grande
         out.append({
             "id": l["url"],
             "fuente": l["casa_nombre"],
@@ -204,7 +208,9 @@ def preparar(lotes):
             "lg": s["logistica"], "cf": s["confianza"],
             "porque": l.get("razones", [])[:4],
             "riesgos": l.get("banderas", [])[:3],
-            "avisos": l.get("avisos", [])[:1],
+            "avisos": l.get("avisos", [])[:2],
+            "orig": l.get("precio_original"),
+            "epoca": l.get("epoca_etsy"),
             "opq": s["op_por_que"],
         })
     return out
@@ -218,6 +224,10 @@ def construir(minimo=None):
     """
     ruta = os.path.join(DIR_DATOS, "lotes.json")
     lotes = json.load(open(ruta, encoding="utf-8")) if os.path.exists(ruta) else []
+    # Etsy va aparte y solo entra si tiene menos de 24 h (condiciones de su API)
+    de_etsy, estado_etsy = cargar_si_fresco()
+    print(f"  {estado_etsy}: {len(de_etsy)} anuncios")
+    lotes = lotes + de_etsy
     elegidos = ranking(lotes, minimo=minimo) if minimo is not None else todos_los_vivos(lotes)
     datos = preparar(elegidos)
     # "</" dentro del JSON cerraria la etiqueta <script> si un titulo lo trae
