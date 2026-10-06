@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 100" role="img" aria-label="Cachalote echando cacharros por el chorro">
+  <g transform="translate(0,36)">
+    <path fill="currentColor" d="M8,24 Q8,14 18,14 L54,14 C70,14 82,19 93,28 L104,34 L117,24 Q122,22 121,27 L111,36 L121,45 Q122,50 117,48 L104,38 C91,45 77,49 60,49 L26,49 Q19,49 17,45 L13,42 Q8,39 8,32 Z"/>
+    <path fill="currentColor" d="M48,47 Q52,58 62,58 Q57,53 57,47 Z"/>
+    <g fill="none" stroke="var(--hueco,#eceae4)" stroke-width="1.6" stroke-linecap="round">
+      <path d="M15,42 L42,44"/><path d="M72,29 h9 M76,34 h9 M71,39 h8"/>
+    </g>
+    <circle cx="45" cy="34" r="2" fill="var(--hueco,#eceae4)"/>
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".8">
+      <path d="M13,11 L8,4"/><path d="M17,10 L16,3"/><path d="M10,13 L4,10"/>
+    </g>
+  </g>
+  <!-- lo que escupe: un flexo, una silla y un jarron, dando vueltas -->
+  <g fill="var(--acento,#a8423b)">
+    <!-- flexo: base, dos brazos y pantalla -->
+    <g transform="translate(2,10) rotate(-38 10 14)">
+      <rect x="0" y="25" width="12" height="3" rx="1"/>
+      <path d="M6,26 L3,15 L12,8" fill="none" stroke="var(--acento,#a8423b)" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M10,4 L19,9 Q17,14 12,13 Z"/>
+    </g>
+    <!-- silla: respaldo, asiento grueso, patas -->
+    <g transform="translate(36,4) rotate(38 8 14)">
+      <rect x="0" y="0" width="3" height="28" rx="1"/>
+      <rect x="0" y="14" width="15" height="4" rx="1"/>
+      <rect x="12" y="16" width="3" height="12" rx="1"/>
+    </g>
+    <!-- jarron -->
+    <g transform="translate(60,10) rotate(-10 6 10)">
+      <path d="M3,0 h6 v4 Q14,9 12,17 Q10,22 6,22 Q2,22 0,17 Q-2,9 3,4 Z"/>
+    </g>
+  </g>
+</svg>

@@ -162,19 +162,56 @@ EJES = {
     "fondo": r"depth|deep|diepte|tiefe|profundidad|fondo|profondit[aà]|profondeur|length|long|lengte|l[aä]nge|d|l",
 }
 RE_EJE = {eje: re.compile(r"(?<![a-z])(?:" + rx + r")\s*[:=.]?\s*(?:approx\.?|ca\.?|about)?\s*"
-                          r"(\d{1,3}(?:[.,]\d{1,2})?)\s*(cm|mm|in(?:ch(?:es)?)?\b|\"|'')", re.I)
+                          r"(\d{1,3}(?:[.,]\d{1,2})?)\s*(cm|mm|in(?:ch(?:es)?)?\b|\"|”|'')", re.I)
           for eje, rx in EJES.items()}
+
+
+# "H75 × W44 × D32 cm", "L 43 cm x W 43 cm x H 100 cm", 17” L x 17” W x 30” H:
+# letras pegadas a cada numero y la unidad al final (The Oblist, 1stDibs)
+_N = r"(\d{1,3}(?:[.,]\d{1,2})?)"
+_U = r"\s*(?:cm|mm|in|\"|”|'')?\s*"
+RE_LETRAS = re.compile(
+    r"(?<![a-z])([hwdl])\.?\s*" + _N + _U + r"[×x*/]\s*([hwdl])\.?\s*" + _N + _U
+    + r"(?:[×x*/]\s*([hwdl])\.?\s*" + _N + r")?\s*(cm|mm|in(?:ch(?:es)?)?\b|\"|”)", re.I)
+RE_LETRAS_DETRAS = re.compile(
+    _N + r"\s*(\"|”|cm|in)?\s*([hwdl])\b\s*[×x*/]\s*" + _N + r"\s*(?:\"|”|cm|in)?\s*([hwdl])\b"
+    r"(?:\s*[×x*/]\s*" + _N + r"\s*(?:\"|”|cm|in)?\s*([hwdl])\b)?", re.I)
+_EJE_LETRA = {"h": "alto", "w": "ancho", "d": "fondo", "l": "fondo"}
+
+
+def _factor(u):
+    u = (u or "cm").lower()
+    return 0.1 if u == "mm" else (2.54 if u.startswith("in") or u in ('"', "”", "''") else 1.0)
 
 
 def medidas_de_texto(desc):
     """Devuelve {'alto': cm, 'ancho': cm, 'fondo': cm} con lo que encuentre."""
+    desc = desc or ""
+    m = RE_LETRAS.search(desc)
+    if m:
+        f = _factor(m.group(7))
+        out = {}
+        for le, v in ((m.group(1), m.group(2)), (m.group(3), m.group(4)), (m.group(5), m.group(6))):
+            if le and v:
+                out.setdefault(_EJE_LETRA[le.lower()], round(float(v.replace(",", ".")) * f))
+        if len(out) >= 2:
+            return out
+    m = RE_LETRAS_DETRAS.search(desc)
+    if m:
+        f = _factor(m.group(2))
+        out = {}
+        for v, le in ((m.group(1), m.group(3)), (m.group(4), m.group(5)), (m.group(6), m.group(7))):
+            if le and v:
+                out.setdefault(_EJE_LETRA[le.lower()], round(float(v.replace(",", ".")) * f))
+        if len(out) >= 2:
+            return out
     out = {}
     for eje, rx in RE_EJE.items():
         m = rx.search(desc or "")
         if m:
             v = float(m.group(1).replace(",", "."))
             u = m.group(2).lower()
-            v *= 0.1 if u == "mm" else (2.54 if u.startswith("in") or u in ('"', "''") else 1)
+            v *= _factor(u)
             if 2 < v < 400:
                 out[eje] = round(v)
     return out

@@ -8,6 +8,7 @@ y el manual: nadie serio puja sin ver la pieza o pedir el informe de estado.
 """
 import re
 import unicodedata
+from datetime import datetime, timedelta, timezone
 
 import perfil
 from casas import CASAS, coste_total
@@ -40,6 +41,11 @@ _SUELTAS = r"(cord|cable|wir|plug|socket|shade|part|hardware|bulb|knob|handle|pr
 _PIEZA_SUELTA = re.compile(r"^(\W*\w+){0,4}?\W*" + _SUELTAS)
 _PIEZA_ANTES = re.compile(_SUELTAS + r"\w*\W+(\w+\W+){0,4}$")
 _ESTILO_VAGO = re.compile(r"^\s*(this|my|the|our|your|old|classic|vintage|industrial)\b")
+
+
+# fuentes que escriben en ingles: ahi "after " es una palabra cualquiera y el
+# vocabulario de atribucion es el de GRADOS_ATRIBUCION_EN
+EN_INGLES = {"etsy", "1stdibs", "oblist"}
 
 
 def _atribucion_en(formula, texto):
@@ -120,7 +126,8 @@ def puntuar(lote):
 
     # --- lectura del catalogo: lo que la casa esta diciendo en su codigo
     grados = perfil.GRADOS_ATRIBUCION
-    if lote.get("casa") == "etsy":
+    en_ingles = lote.get("casa") in EN_INGLES
+    if en_ingles:
         grados = {k: v for k, v in grados.items() if k != "after "}
         grados.update(perfil.GRADOS_ATRIBUCION_EN)
         # "Thonet Style Chair", "Eames style": en el titulo, style = no es suyo
@@ -129,7 +136,7 @@ def puntuar(lote):
             banderas.append("el titulo dice 'style': al estilo de, NO del disenador")
             pts -= 2
     for formula, significado in grados.items():
-        if formula in perfil.GRADOS_ATRIBUCION_EN and lote.get("casa") == "etsy":
+        if formula in perfil.GRADOS_ATRIBUCION_EN and en_ingles:
             # "design inspired by 1960s desk lamps" es historia del diseno, no
             # una confesion: "inspired by" solo cuenta en el titulo
             donde = limpiar(lote.get("titulo", "")) if formula == "inspired by" else txt
@@ -163,6 +170,13 @@ def puntuar(lote):
             razones.append(f"BAJO DE PRECIO {baja:.0f} % ({h['de']:.0f} -> {h['a']:.0f} EUR)")
             pts += 4
 
+    # --- rebaja que anuncia la propia tienda (Pamono marca el precio anterior)
+    antes = lote.get("precio_anterior")
+    if antes and lote.get("salida") and antes > lote["salida"]:
+        baja = 100 * (1 - lote["salida"] / antes)
+        razones.append(f"BAJO DE PRECIO {baja:.0f} % en la tienda ({antes:.0f} -> {lote['salida']:.0f} EUR)")
+        pts += 3
+
     # --- presupuesto
     salida = lote.get("salida") or 0
     fuera_presupuesto = False
@@ -194,8 +208,25 @@ def puntuar(lote):
     return lote
 
 
+def vigente(l, dias=4):
+    """
+    Una tienda no avisa cuando vende algo: la pieza simplemente desaparece del
+    listado. Si una pieza de precio fijo lleva mas de `dias` sin aparecer en
+    ninguna pasada, se da por vendida y sale de la pagina.
+    """
+    if l.get("historico"):
+        return False
+    if not l.get("precio_fijo") or l.get("casa") == "etsy":
+        return True
+    try:
+        visto = datetime.fromisoformat(l["visto"])
+    except (KeyError, ValueError):
+        return True
+    return datetime.now(timezone.utc) - visto < timedelta(days=dias)
+
+
 def ranking(lotes, minimo=4):
-    lotes = [l for l in lotes if not l.get("historico")]
+    lotes = [l for l in lotes if vigente(l)]
     puntuados = [puntuar(dict(l)) for l in lotes]
     vivos = [l for l in puntuados if not l["descartado"] and l["puntos"] >= minimo]
     return sorted(vivos, key=lambda l: (-l["puntos"], l.get("salida") or 0))
@@ -207,7 +238,7 @@ def todos_los_vivos(lotes):
     gusto, puntue lo que puntue. Un encargo concreto ("comoda blanca") tiene
     que poder encontrar piezas que el perfil de gusto no habria subido nunca.
     """
-    lotes = [l for l in lotes if not l.get("historico")]
+    lotes = [l for l in lotes if vigente(l)]
     puntuados = [puntuar(dict(l)) for l in lotes]
     vivos = [l for l in puntuados if not l["rechazado"]]
     return sorted(vivos, key=lambda l: (-l["puntos"], l.get("salida") or 0))

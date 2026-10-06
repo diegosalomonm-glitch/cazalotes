@@ -1,4 +1,6 @@
-# CazaLotes
+# Cacharrotes
+
+<img src="marca/cachalote_cacharros.svg" width="160" alt="A sperm whale spouting a desk lamp, a chair and a vase">
 
 A personal tool for finding vintage furniture and art to put in my own flat in Madrid.
 
@@ -8,10 +10,15 @@ lots are worth a look.
 
 It is not a marketplace, a price comparison site, or a reselling tool. One user, me.
 
+The name started as CazaLotes, "lot hunter", which sounds like *cachalote*, sperm whale.
+*Cacharro* is what Venezuelans call any old thing, so Cacharrotes is big old things, lots
+and a whale at once. The repository keeps its original name.
+
 ## What it does
 
 **Reads catalogues.** Five Madrid auction houses (Durán, Sala Retiro, Segre, Ansorena,
-Alcalá) plus two Shopify shops. Around 2,300 live lots at the moment.
+Alcalá), three Shopify shops (La Basílica, Odalys, The Oblist), Pamono, 1stDibs, and Etsy
+through its API.
 
 **Scores them against my taste**, which lives in `perfil.py`: Shaker, Barragán, Donald Judd,
 Vienna Secession, Danish teak, Venezuelan naive painters, sculpture and busts. And what I
@@ -59,7 +66,8 @@ python3 -m venv .venv
 cp config.py config_local.py    # put your own contact address in it
 
 .venv/bin/python run.py              # read the live catalogues, then rank
-.venv/bin/python shopify.py          # read the two Shopify shops
+.venv/bin/python shopify.py          # La Basílica, Odalys and The Oblist
+.venv/bin/python tiendas.py          # Pamono and 1stDibs
 .venv/bin/python etsy.py             # Etsy, through its official API (needs keys, see below)
 .venv/bin/python vista.py            # build the page: datos/vista.html
 open datos/vista.html                # browse, search, vote
@@ -95,6 +103,32 @@ harmless uses ("we never sell reproductions", "reproduction cloth cord"). Etsy's
 fields are usually empty, so measurements are also read from labelled text in the
 description ("height 81.5 cm, width 55 cm").
 
+## Pamono, The Oblist and 1stDibs
+
+All three were checked before writing any code (6 October 2026), and all three are read
+without an account, one request every three seconds, with a full stop on any 403.
+
+**The Oblist** moved to oblist.com and is a Shopify store whose `robots.txt` allows
+everything except carts, accounts and search. Most of its catalogue is new and expensive, so
+only three vintage collections are read, and only pieces under 900 €.
+
+**Pamono** allows its category pages in `robots.txt` and says nothing about automated
+access in its terms. Categories are read sorted by price, ascending, and the reader stops
+on the first page that goes past the ceiling, so it rarely needs more than two pages. The
+"contemporáneo" categories are left out on purpose. For storage, desks and nightstands it
+also opens the product page once to get width, depth and height, and caches the result.
+When Pamono marks a piece down, the old price counts as a price drop.
+
+**1stDibs** forbids its search, item pages and any `?q=` in `robots.txt`, but allows category
+pages and the `?price=` filter. Every category page carries a JSON-LD block with name, price,
+photo, category and year, so product pages are never opened. Its user agreement asks users
+to follow "accepted Internet protocol", which is what `robots.txt` is. Prices are in dollars
+and the euro figure is approximate.
+
+A shop does not announce a sale; the piece just disappears. Any fixed-price piece not seen
+in the last four days is treated as sold and dropped from the page. Sold-out Shopify
+products are skipped; they used to be marked "unsold", which was backwards.
+
 ## The page
 
 `vista.py` writes one self-contained HTML file. Everything on sale that does not clash
@@ -128,7 +162,9 @@ pages only link a 260 px thumbnail, which is why an earlier version looked blurr
 | `casas.py` | Each house, its premium, its storage charges, total cost |
 | `scraper.py` | Reads the five houses. Rate limiting and stop conditions live here |
 | `duran.py` | Durán loads lots over AJAX and needs its own adapter |
-| `shopify.py` | Shops with an open `products.json` |
+| `shopify.py` | Shops with an open `products.json`, including The Oblist |
+| `tiendas.py` | Pamono and 1stDibs |
+| `marca/` | The whale, in two sizes |
 | `puntuar.py` | Scoring, and the catalogue-vocabulary flags |
 | `encargo.py` | Briefs with hard dimensional limits |
 | `comparables.py` | Past hammer prices, matched within category and period |

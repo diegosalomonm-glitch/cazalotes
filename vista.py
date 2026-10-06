@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Genera datos/vista.html: la rejilla visual para escanear cientos de lotes rapido.
+Genera datos/vista.html (Cacharrotes): la rejilla visual para escanear cientos de lotes rapido.
 
 Decisiones que vienen del brief de Diego:
   - La imagen manda. Todo lo demas es cartela.
@@ -151,6 +151,22 @@ def atributos(l):
     }
 
 
+DIR_MARCA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "marca")
+
+
+def svg(nombre):
+    """El SVG de la mascota, listo para meterlo en linea (sin comentarios)."""
+    t = open(os.path.join(DIR_MARCA, nombre), encoding="utf-8").read()
+    return re.sub(r"\s*<!--.*?-->", "", t, flags=re.S).strip()
+
+
+def favicon():
+    from urllib.parse import quote
+    t = (svg("cachalote.svg").replace("currentColor", "#2e4a52")
+         .replace("var(--hueco,#2e4a52)", "#eceae4"))
+    return "data:image/svg+xml," + quote(t)
+
+
 RE_THUMB = re.compile(r"/img/thumbs/\d+/")
 
 
@@ -234,7 +250,10 @@ def construir(minimo=None):
     datos = preparar(elegidos)
     # "</" dentro del JSON cerraria la etiqueta <script> si un titulo lo trae
     carga = json.dumps(datos, ensure_ascii=False).replace("</", "<\\/")
-    html = PLANTILLA.replace("__DATOS__", carga)
+    html = (PLANTILLA.replace("__BALLENA__", svg("cachalote.svg"))
+            .replace("__BALLENA_CACHARROS__", svg("cachalote_cacharros.svg"))
+            .replace("__FAVICON__", favicon()))
+    html = html.replace("__DATOS__", carga)
     html = html.replace("__FECHA__", datetime.now().strftime("%d/%m/%Y %H:%M"))
     vivos = sum(1 for l in lotes if not l.get("historico"))
     html = html.replace("__TOTAL__", str(vivos))

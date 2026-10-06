@@ -24,7 +24,8 @@ porque en Shaker la union se ve.
 PLANTILLA = r"""<!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CazaLotes</title>
+<title>Cacharrotes</title>
+<link rel="icon" href="__FAVICON__">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Archivo+Narrow:wght@400;600&display=swap">
@@ -38,18 +39,19 @@ PLANTILLA = r"""<!doctype html>
   --ui:'Archivo',system-ui,-apple-system,sans-serif;
   --etq:'Archivo Narrow','Archivo',system-ui,sans-serif;
   --ancho:300px;
+  --ballena:#2e4a52;       /* la mascota fuera de la barra */
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
   --yeso:#14130f; --caja:#1c1a16; --tinta:#eeece6; --gris:#a8a39a; --borde:#2d2a24;
   --muro:#1d3238; --muro-tinta:#dfe6e5;
-  --rosa:#d9705d; --verde:#6cb795; --ocre:#d2a44a;
+  --rosa:#d9705d; --verde:#6cb795; --ocre:#d2a44a; --ballena:#8fb0b5;
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
   --yeso:#14130f; --caja:#1c1a16; --tinta:#eeece6; --gris:#a8a39a; --borde:#2d2a24;
   --muro:#1d3238; --muro-tinta:#dfe6e5;
-  --rosa:#d9705d; --verde:#6cb795; --ocre:#d2a44a;
+  --rosa:#d9705d; --verde:#6cb795; --ocre:#d2a44a; --ballena:#8fb0b5;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -67,6 +69,13 @@ body{margin:0;background:var(--yeso);color:var(--tinta);font-family:var(--ui);
 .marca{font-weight:800;font-size:17px;letter-spacing:-.03em;margin:0 10px 0 0;
   text-transform:uppercase}
 .marca em{font-style:normal;opacity:.55}
+.marca{display:flex;align-items:center;gap:9px}
+.marca .ballena{display:inline-flex;width:44px;--hueco:var(--muro)}
+.marca svg,.ballena-grande svg{width:100%;height:auto;display:block}
+.ballena-grande{display:block;width:190px;margin:0 auto 18px;color:var(--ballena);
+  --hueco:var(--yeso);--acento:var(--rosa)}
+.nada p{margin:0 auto;max-width:34em;line-height:1.5}
+.pie .lema{margin:0 0 6px;font-family:var(--etq);letter-spacing:.04em;color:var(--tinta)}
 .muro input,.muro select,.muro button{font:inherit;font-size:13px;
   color:var(--muro-tinta);background:rgba(255,255,255,.09);
   border:1px solid rgba(255,255,255,.22);border-radius:0;padding:6px 10px}
@@ -208,7 +217,7 @@ dd{margin:0;min-width:0;overflow-wrap:anywhere}
 </style></head><body>
 
 <header class="muro"><div class="muro-in">
-  <h1 class="marca">Caza<em>Lotes</em></h1>
+  <h1 class="marca"><span class="ballena" aria-hidden="true">__BALLENA__</span><span>Cacharr<em>otes</em></span></h1>
   <input id="q" aria-label="Buscar por texto" placeholder="buscar por texto&hellip;" style="flex:1;min-width:120px">
   <select id="fuente" aria-label="Filtrar por fuente"><option value="">todas las fuentes</option></select>
   <select id="orden" aria-label="Ordenar resultados">
@@ -273,9 +282,10 @@ dd{margin:0;min-width:0;overflow-wrap:anywhere}
 
 <main id="rejilla" class="rejilla" aria-label="Lotes encontrados"></main>
 <button id="mas" class="mas" hidden>cargar m&aacute;s</button>
-<div id="nada" class="nada" hidden>Nada encaja con este encargo en las fuentes que puedo leer. Prueba los enlaces de arriba.</div>
+<div id="nada" class="nada" hidden><span class="ballena-grande" aria-hidden="true">__BALLENA_CACHARROS__</span><p>El cachalote bajó hasta el fondo y no encontró nada parecido. Quita algún filtro o prueba los enlaces de arriba.</p></div>
 <div id="velo" class="velo" hidden></div>
-<footer class="pie">The term 'Etsy' is a trademark of Etsy, Inc. This Application uses Etsy's API,
+<footer class="pie"><p class="lema">Cacharrotes &middot; cacharros buenos a precio de cacharro.
+Lee los catálogos de subastas y tiendas por ti.</p>The term 'Etsy' is a trademark of Etsy, Inc. This Application uses Etsy's API,
 but is not endorsed or certified by Etsy.</footer>
 
 <script>
