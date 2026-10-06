@@ -66,7 +66,7 @@ def _lado_mayor(txt):
     return mejor if 3 < mejor < 2000 else 0.0
 
 
-def rastrear(tienda_id, max_paginas=8, pausa=2.0):
+def rastrear(tienda_id, max_paginas=20, pausa=2.0):
     t = TIENDAS[tienda_id]
     print(f"\n=== {t['nombre']} (Shopify) ===")
     lotes, vistos = [], set()
