@@ -86,6 +86,15 @@ Each Etsy listing shows the original price and currency; the euro figure used fo
 is an approximate conversion. Listings Etsy marks as recent are flagged as new rather than
 vintage, and shops outside the EU are flagged for customs and import VAT.
 
+Etsy sellers pad titles and the materials field with lists of designer names for search
+("eames, rietveld, cadovius, le corbusier"). Titles are cut back to the part that describes
+the piece, padded materials are dropped, and a listing that names four or more designers only
+scores for the top two and is flagged. English catalogue vocabulary ("in the style of",
+"replica", "attributed to") is flagged the way "estilo" and "atribuido a" are, ignoring the
+harmless uses ("we never sell reproductions", "reproduction cloth cord"). Etsy's own size
+fields are usually empty, so measurements are also read from labelled text in the
+description ("height 81.5 cm, width 55 cm").
+
 ## The page
 
 `vista.py` writes one self-contained HTML file. Everything on sale that does not clash

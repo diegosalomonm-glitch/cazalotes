@@ -31,6 +31,28 @@ def _encaja(clave, texto, estricto=False):
     return clave in texto
 
 
+# En ingles la misma palabra sirve para cosas que no son la pieza: "we do not
+# sell reproductions", "reproduction cloth cord", "the style of this sconce",
+# "unattributed to a brand". Solo cuenta si no va negada ni habla de una pieza
+# suelta (cable, pantalla...).
+_NEGADO = re.compile(r"(\bnot?\b|\bnever\b|\bany\b|\bun|rather than|instead of|unlike)\W*(\w+\W+){0,3}$")
+_SUELTAS = r"(cord|cable|wir|plug|socket|shade|part|hardware|bulb|knob|handle|print)"
+_PIEZA_SUELTA = re.compile(r"^(\W*\w+){0,4}?\W*" + _SUELTAS)
+_PIEZA_ANTES = re.compile(_SUELTAS + r"\w*\W+(\w+\W+){0,4}$")
+_ESTILO_VAGO = re.compile(r"^\s*(this|my|the|our|your|old|classic|vintage|industrial)\b")
+
+
+def _atribucion_en(formula, texto):
+    for m in re.finditer(re.escape(formula), texto):
+        antes, despues = texto[max(0, m.start() - 45):m.start()], texto[m.end():m.end() + 25]
+        if _NEGADO.search(antes) or _PIEZA_SUELTA.search(despues) or _PIEZA_ANTES.search(antes):
+            continue
+        if "style of" in formula and _ESTILO_VAGO.search(despues):
+            continue
+        return True
+    return False
+
+
 def limpiar(s):
     """Minusculas y sin tildes, para que 'oleo' encuentre 'óleo'."""
     s = (s or "").lower()
@@ -42,13 +64,16 @@ def puntuar(lote):
     txt = limpiar(lote.get("titulo", "") + " " + lote.get("texto", ""))
     pts = 0
     razones, banderas, avisos = [], [], []
+    nombres = []        # (clave, puntos) de cada nombre o estilo fuerte encontrado
 
     # --- artistas por nombre: la senal mas fuerte
     for a in perfil.ARTISTAS:
         if limpiar(a) in txt:
             es_alcanzable = a in perfil.ARTISTAS_ALCANZABLES
             es_venezolano = a in perfil.ARTISTAS_VENEZOLANOS
-            pts += 8 if es_venezolano else (6 if es_alcanzable else 4)
+            p = 8 if es_venezolano else (6 if es_alcanzable else 4)
+            pts += p
+            nombres.append((a, p))
             razones.append(f"ARTISTA: {a}")
             for clave, aviso in perfil.AVISOS_POR_ARTISTA.items():
                 if clave in limpiar(a):
@@ -60,6 +85,17 @@ def puntuar(lote):
             pts += peso
             if peso >= 3:
                 razones.append(k)
+                nombres.append((k, peso))
+
+    # --- relleno SEO: en las tiendas online (Etsy sobre todo) el vendedor pega
+    # una ristra de nombres ("eames, rietveld, cadovius, le corbusier...") que no
+    # tienen nada que ver con la pieza. Una pieza de verdad casi nunca nombra a
+    # mas de tres. Con cuatro o mas solo cuentan los dos que mas puntuan.
+    if lote.get("precio_fijo") and len(nombres) >= 4:
+        sobran = sorted((p for _, p in nombres), reverse=True)[2:]
+        pts -= sum(sobran)
+        banderas.append(f"nombra a {len(nombres)} diseñadores/estilos: suele ser "
+                        "relleno para buscadores, no lo que es la pieza")
 
     # --- rechazo
     descartado = False
@@ -83,10 +119,26 @@ def puntuar(lote):
         razones.append(f"formato grande {lado:.0f} cm")
 
     # --- lectura del catalogo: lo que la casa esta diciendo en su codigo
-    for formula, significado in perfil.GRADOS_ATRIBUCION.items():
-        if formula in txt:
-            banderas.append(f"'{formula.strip()}' = {significado}")
+    grados = perfil.GRADOS_ATRIBUCION
+    if lote.get("casa") == "etsy":
+        grados = {k: v for k, v in grados.items() if k != "after "}
+        grados.update(perfil.GRADOS_ATRIBUCION_EN)
+        # "Thonet Style Chair", "Eames style": en el titulo, style = no es suyo
+        if re.search(r"[a-z]\s*-?\s*style\b", limpiar(lote.get("titulo", ""))) \
+                and "style of " not in txt:
+            banderas.append("el titulo dice 'style': al estilo de, NO del disenador")
             pts -= 2
+    for formula, significado in grados.items():
+        if formula in perfil.GRADOS_ATRIBUCION_EN and lote.get("casa") == "etsy":
+            # "design inspired by 1960s desk lamps" es historia del diseno, no
+            # una confesion: "inspired by" solo cuenta en el titulo
+            donde = limpiar(lote.get("titulo", "")) if formula == "inspired by" else txt
+            if not _atribucion_en(formula, donde):
+                continue
+        elif formula not in txt:
+            continue
+        banderas.append(f"'{formula.strip()}' = {significado}")
+        pts -= 2
 
     # --- firma: multiplica el precio por 3 o 4
     if any(f in txt for f in perfil.FIRMA_MALA):

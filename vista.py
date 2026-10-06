@@ -186,6 +186,8 @@ def preparar(lotes):
         out.append({
             "id": l["url"],
             "fuente": l["casa_nombre"],
+            # para el desplegable: todo Etsy junto, no 1.400 tiendas sueltas
+            "grupo": "Etsy" if l.get("casa") == "etsy" else l["casa_nombre"],
             "lote": l.get("lote"),
             "titulo": (l.get("titulo") or "sin titulo")[:140],
             "salida": l.get("salida"),

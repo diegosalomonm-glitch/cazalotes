@@ -339,7 +339,7 @@ document.addEventListener('click',e=>{
 });
 const marcados=cont=>[...document.querySelectorAll(cont+' .chip.on')].map(c=>c.dataset.x);
 
-$('#fuente').innerHTML+=[...new Set(DATOS.map(d=>d.fuente))].sort()
+$('#fuente').innerHTML+=[...new Set(DATOS.map(d=>d.grupo||d.fuente))].sort()
   .map(f=>'<option>'+esc(f)+'</option>').join('');
 
 function med(v,e,op){
@@ -358,7 +358,7 @@ function ficha(d,i){
     .filter(Boolean).map(x=>'<i>'+esc(x)+'</i>').join('');
   const real=(d.total&&Math.round(d.total)!==Math.round(d.salida))
     ? '<span>→ '+Math.round(d.total)+' € real</span>'
-    : (d.fijo?'<span>precio final</span>':'');
+    : (d.fijo?'<span>+ envío</span>':'');
   return '<article class="ficha'+(v==='x'||v==='0'?' apagada':'')+'" data-i="'+i+'" tabindex="0">'
     +'<div class="lienzo">'+img+'<div class="sellos">'+sellos+'</div></div>'
     +'<div class="cartela">'
@@ -392,7 +392,7 @@ function leerEncargo(){
 function cumple(d,E){
   /* texto libre: todas las palabras tienen que aparecer, en cualquier orden */
   if(E.q&&!E.q.split(/\s+/).every(w=>d._t.includes(w)))return false;
-  if(E.fuente&&d.fuente!==E.fuente)return false;
+  if(E.fuente&&(d.grupo||d.fuente)!==E.fuente)return false;
   if(E.excluir.some(x=>d._t.includes(x)))return false;
   if(E.tipos.length){
     /* el tipo se busca en el titulo y el arranque de la descripcion, no en
@@ -489,9 +489,10 @@ function detalle(i){
   const v=votos[d.id];
   const filas=[['fuente',d.fuente],['lote',d.lote],['medidas',d.dims||'no declaradas'],
     ['periodo',d.epoca||d.periodo],['materiales',(d.mats||[]).join(', ')],['dónde',d.donde],
-    ['salida',d.salida!=null?Math.round(d.salida)+' €':null],
+    [d.fijo?'precio':'salida',d.salida!=null?Math.round(d.salida)+' €':null],
     ['precio original',d.orig&&!/ EUR$/.test(d.orig)?d.orig:null],
-    ['coste real',d.total?Math.round(d.total)+' € ('+(d.recargo||0)+' % encima)':null]]
+    ['coste real',d.fijo?(d.salida!=null?Math.round(d.salida)+' € + envío (no calculado)':null)
+      :(d.total?Math.round(d.total)+' € ('+(d.recargo||0)+' % encima)':null)]]
     .filter(p=>p[1]).map(p=>'<dt>'+esc(p[0])+'</dt><dd>'+esc(p[1])+'</dd>').join('');
   $('#velo').innerHTML='<div class="hoja" role="dialog" aria-modal="true" aria-label="'
     +esc(d.titulo)+'" tabindex="-1">'
@@ -503,7 +504,7 @@ function detalle(i){
     +'<div class="precio">'+(d.salida!=null?Math.round(d.salida)+' €':'—')
     +((d.total&&Math.round(d.total)!==Math.round(d.salida))
         ?'<em>'+Math.round(d.total)+' € puestos en casa</em>'
-        :(d.fijo?'<em>precio final</em>':''))+'</div>'
+        :(d.fijo?'<em>precio fijo, envío aparte</em>':''))+'</div>'
     +'<h2>'+esc(d.titulo)+'</h2>'
     +(d.desc?'<p class="desc">'+esc(d.desc)+'</p>':'')
     +'<dl>'+filas+'</dl>'
@@ -512,7 +513,7 @@ function detalle(i){
     +(d.opq.length?'<div class="caja bien">oportunidad: '+esc(d.opq.join(', '))+'</div>':'')
     +d.riesgos.map(r=>'<div class="caja mal">'+esc(r)+'</div>').join('')
     +d.avisos.map(a=>'<div class="caja ojo">'+esc(a)+'</div>').join('')
-    +(!d.d3?'<div class="caja ojo">El catálogo no da medidas. Pregunta antes de pujar.</div>':'')
+    +(!d.d3?'<div class="caja ojo">'+(d.fijo?'El anuncio no da medidas. Pídelas al vendedor antes de comprar.':'El catálogo no da medidas. Pregunta antes de pujar.')+'</div>':'')
     +(pobres[d.id]?'<div class="caja ojo">La foto del catálogo mide '+pobres[d.id]
         +' px de ancho. Pide fotos mejores.</div>':'')
     +'<div class="votos">'+VOTOS.map(p=>'<button class="v'+(v===p[0]?' on':'')

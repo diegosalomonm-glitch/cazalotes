@@ -22,6 +22,7 @@ Uso:
     .venv/bin/python etsy.py              busquedas del perfil
     .venv/bin/python etsy.py "comoda blanca"   una busqueda suelta
 """
+import html
 import json
 import os
 import re
@@ -132,6 +133,53 @@ def a_cm(v, unidad):
     return round(float(v) * f)
 
 
+RE_CORTE = re.compile(r"\s+[-–—|]\s+")
+
+
+def titulo_limpio(t):
+    """
+    Muchos vendedores de Etsy pegan una ristra de nombres al titulo para SEO:
+      "Ico & Luisa Parisi stoelen MIM, 1970s - fifties, sixties, retro, eames,
+       rietveld, cadovius, le corbusier, ..."
+    Eso le daba gusto 100 a cualquier silla. Se queda la parte que describe la
+    pieza: hasta el primer guion si lo que sigue es una lista, y como mucho
+    tres trozos separados por comas.
+    """
+    partes = RE_CORTE.split(t, maxsplit=1)
+    if len(partes) == 2 and partes[1].count(",") >= 2:
+        t = partes[0]
+    trozos = [x.strip() for x in t.split(",")]
+    if len(trozos) > 4:
+        t = ", ".join(trozos[:3])
+    return t.strip(" ,-–|")
+
+
+# Medidas escritas con etiqueta en la descripcion, que es lo mas comun en Etsy:
+#   "height 81.5 cm, width 55 cm, depth 54 cm", "Breite: 120 cm", "H 30 in"
+EJES = {
+    "alto": r"height|high|hoogte|h[oö]he|altura|alto|altezza|hauteur|h",
+    "ancho": r"width|wide|breedte|breite|ancho|larghezza|largeur|w",
+    "fondo": r"depth|deep|diepte|tiefe|profundidad|fondo|profondit[aà]|profondeur|length|long|lengte|l[aä]nge|d|l",
+}
+RE_EJE = {eje: re.compile(r"(?<![a-z])(?:" + rx + r")\s*[:=.]?\s*(?:approx\.?|ca\.?|about)?\s*"
+                          r"(\d{1,3}(?:[.,]\d{1,2})?)\s*(cm|mm|in(?:ch(?:es)?)?\b|\"|'')", re.I)
+          for eje, rx in EJES.items()}
+
+
+def medidas_de_texto(desc):
+    """Devuelve {'alto': cm, 'ancho': cm, 'fondo': cm} con lo que encuentre."""
+    out = {}
+    for eje, rx in RE_EJE.items():
+        m = rx.search(desc or "")
+        if m:
+            v = float(m.group(1).replace(",", "."))
+            u = m.group(2).lower()
+            v *= 0.1 if u == "mm" else (2.54 if u.startswith("in") or u in ('"', "''") else 1)
+            if 2 < v < 400:
+                out[eje] = round(v)
+    return out
+
+
 def normalizar(l, tienda=None):
     precio = l.get("price") or {}
     try:
@@ -147,18 +195,30 @@ def normalizar(l, tienda=None):
     u = l.get("item_dimensions_unit")
     w, h, d = a_cm(l.get("item_width"), u), a_cm(l.get("item_height"), u), a_cm(l.get("item_length"), u)
     medidas = [x for x in (w, h, d) if x]
+    if len(medidas) < 2:
+        # Los campos de Etsy vienen vacios en la mayoria: se leen de la descripcion
+        leidas = medidas_de_texto(html.unescape(l.get("description") or ""))
+        if len(leidas) >= 2:
+            medidas = list(leidas.values())
     medidas_txt = (" x ".join(str(x) for x in medidas) + " cm") if len(medidas) >= 2 else ""
 
     epoca, vintage = EPOCA.get(l.get("when_made") or "", (None, None))
+    # Pais desde el que ENVIA, que es lo que cuenta para aduana y transporte.
+    # shop_location_country_iso viene vacio en ~1 de cada 6 tiendas.
     pais = None
     if tienda:
-        pais = (tienda.get("shop_location_country_iso") or tienda.get("country_iso") or "").upper() or None
+        pais = (tienda.get("shipping_from_country_iso")
+                or tienda.get("shop_location_country_iso") or "").upper() or None
 
-    desc = re.sub(r"\s+", " ", l.get("description") or "").strip()
-    mats = ", ".join(l.get("materials") or [])
-    etiquetas = ", ".join(l.get("tags") or [])
-    texto = " . ".join(x for x in [
-        l.get("title") or "", medidas_txt, epoca or "", mats, etiquetas, desc[:900]] if x)
+    titulo = titulo_limpio(html.unescape(l.get("title") or ""))
+    desc = re.sub(r"\s+", " ", html.unescape(l.get("description") or "")).strip()
+    # "materials" tambien se usa de vertedero de etiquetas ("vintage, retro,
+    # eames, danish, auction..."). Con mas de cuatro entradas no es un material.
+    materiales = l.get("materials") or []
+    mats = ", ".join(materiales) if len(materiales) <= 4 else ""
+    # Las etiquetas (tags) NO entran en el texto que se puntua: son SEO puro del
+    # vendedor y le daban a Etsy notas de gusto infladas frente a las subastas.
+    texto = " . ".join(x for x in [titulo, medidas_txt, epoca or "", mats, desc[:900]] if x)
 
     avisos = []
     if vintage is False:
@@ -173,7 +233,7 @@ def normalizar(l, tienda=None):
         "casa": "etsy",
         "casa_nombre": "Etsy" + (f" · {nombre_tienda}" if nombre_tienda else ""),
         "lote": str(l.get("listing_id")),
-        "titulo": (l.get("title") or "")[:300],
+        "titulo": titulo[:300],
         "texto": texto[:1500],
         "salida": eur,
         "precio_original": f"{valor:.2f} {moneda}",

@@ -281,6 +281,20 @@ GRADOS_ATRIBUCION = {
     "de epoca posterior": "reproduccion",
 }
 
+# Lo mismo en ingles, para Etsy. "after " NO entra: en un anuncio en ingles sale
+# en cualquier frase ("after cleaning") y marcaba 96 anuncios por error.
+GRADOS_ATRIBUCION_EN = {
+    "in the style of": "'al estilo de': NO es del disenador",
+    "style of ": "'al estilo de': NO es del disenador",
+    "inspired by": "inspirado en: NO es del disenador",
+    "attributed to": "atribuido: sin certeza",
+    "manner of": "a la manera de: imitacion",
+    "circle of": "circulo de: NO es del artista",
+    "school of": "escuela de: artista sin identificar",
+    "replica": "replica declarada",
+    "reproduction": "reproduccion declarada",
+}
+
 # Firma: la diferencia que multiplica el precio por 3 o 4.
 FIRMA_BUENA = ["firmado a lapiz", "firmada a lapiz", "justificada a lapiz",
                "firmado abajo", "firmada abajo", "firmado y numerado a lapiz"]
