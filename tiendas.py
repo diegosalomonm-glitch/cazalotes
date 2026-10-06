@@ -115,8 +115,9 @@ def pamono_categoria(cat, tope=TOPE_EUR, max_paginas=4):
             vistos.add(href)
             nuevos += 1
             ma, mi = RE_ANTES.search(c), RE_IMG.search(c)
-            l = lote("pamono", "Pamono", titulo, href, precio,
-                     imagen=mi.group(1) if mi else None, categoria=cat)
+            # el listado enlaza el recorte a 300 px (/p/m/); el mismo a 440 es /p/z/
+            img = mi.group(1).replace("/p/m/", "/p/z/") if mi else None
+            l = lote("pamono", "Pamono", titulo, href, precio, imagen=img, categoria=cat)
             if ma and float(ma.group(1)) > precio:
                 # la propia tienda lo ha rebajado: es la senal de oportunidad
                 l["precio_anterior"] = float(ma.group(1))
@@ -165,7 +166,12 @@ def pamono_ficha(url):
     md = re.search(r'itemprop="description"[^>]*>(.*?)</div>', h, re.S)
     if md:
         desc = limpio(md.group(1))[:900]
-    return {"medidas": m, "filas": filas, "desc": desc, "v": 2}
+    # primera foto de verdad (no el recorte): /p/z/ la sirve a 1.600 px
+    foto = None
+    mo = re.search(r'property="og:image" content="([^"]+)"', h) or re.search(r'og:image" content="([^"]+)"', h)
+    if mo:
+        foto = re.sub(r"/p/[a-z]/", "/p/z/", mo.group(1))
+    return {"medidas": m, "filas": filas, "desc": desc, "foto": foto, "v": 3}
 
 
 def pamono(tope=TOPE_EUR, max_fichas=200):
@@ -175,7 +181,7 @@ def pamono(tope=TOPE_EUR, max_fichas=200):
         lotes += pamono_categoria(cat, tope)
     # fichas: se cachean por URL, asi cada dia solo se abren las nuevas
     cache = json.load(open(CACHE_FICHAS, encoding="utf-8")) if os.path.exists(CACHE_FICHAS) else {}
-    cache = {u: v for u, v in cache.items() if v.get("v") == 2}
+    cache = {u: v for u, v in cache.items() if v.get("v") == 3}
     pendientes = [l for l in lotes if l["categoria"] in PAMONO_CON_FICHA and l["url"] not in cache]
     if pendientes:
         print(f"  abriendo {min(len(pendientes), max_fichas)} fichas nuevas de "
@@ -191,8 +197,13 @@ def pamono(tope=TOPE_EUR, max_fichas=200):
         datos = [f.get(k) for k in ("Diseñador", "Creador", "Fabricante", "Año",
                                     "Época del diseño", "Periodo de produccion", "Estilo",
                                     "Material", "Estado detallado", "País de fabricación")]
-        l["texto"] = " . ".join(x for x in [l["titulo"], txt, *datos, fi.get("desc", "")] if x)[:1500]
+        # La descripcion en prosa no viene en el HTML (se carga al pulsar), y lo
+        # que hay en su sitio es el rotulo "Diseno Vintage", que sumaba "diseno"
+        # a todas las piezas. Lo que describe la pieza es la tabla de datos.
+        l["texto"] = " . ".join(x for x in [l["titulo"], txt, *datos] if x)[:1500]
         l["lado_mayor_cm"] = lado
+        if fi.get("foto"):
+            l["imagen_grande"] = fi["foto"]
         # el pais desde el que se envia: cuenta para el transporte y la aduana
         if f.get("Envía desde"):
             l["ubicacion"] = f["Envía desde"]
@@ -268,6 +279,7 @@ def dibs_categoria(cat, tope_eur=TOPE_EUR, max_paginas=3):
                 "1stdibs", "1stDibs", titulo, it.get("url") or url, eur,
                 texto=" . ".join(x for x in [titulo, txt, ano, it.get("category") or "", desc] if x)[:1500],
                 imagen=(it.get("image") or "").split("?")[0] + "?width=768" if it.get("image") else None,
+                imagen_grande=(it.get("image") or "").split("?")[0] + "?width=1600" if it.get("image") else None,
                 precio_original=f"{precio:.2f} {moneda}",
                 lado_mayor_cm=lado, avisos_fuente=avisos, categoria=cat,
                 epoca_etsy=ano or None,

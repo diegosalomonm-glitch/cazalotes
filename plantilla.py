@@ -474,11 +474,15 @@ function enlacesFuera(E){
     ['eBay','https://www.ebay.es/sch/i.html?_nkw='+q+(t?'&_udhi='+t:'')],
     ['Etsy','https://www.etsy.com/es/search?q='+q+(t?'&max='+t:'')],
     ['Vinted','https://www.vinted.es/catalog?search_text='+q+(t?'&price_to='+t:'')],
-    ['Todocolección','https://www.todocoleccion.net/buscador?bu='+q]
+    ['Todocolección','https://www.todocoleccion.net/buscador?bu='+q],
+    /* De estas tres se leen las categorias, pero no el buscador (robots.txt) */
+    ['Pamono','https://www.pamono.es/catalogsearch/result/?q='+q],
+    ['1stDibs','https://www.1stdibs.com/search/?q='+q],
+    ['The Oblist','https://oblist.com/search?q='+q]
   ];
   caja.innerHTML='<b>Buscar «'+esc(consulta)+'» fuera</b>'
     +sitios.map(s=>'<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[0]+'</a>').join('')
-    +'<span>Estas webs no dejan leerlas automáticamente; se abren con tu búsqueda ya puesta.</span>';
+    +'<span>Sus buscadores no se pueden leer automáticamente; se abren con tu búsqueda ya puesta.</span>';
 }
 
 document.addEventListener('load',function(e){

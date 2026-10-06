@@ -206,6 +206,13 @@ NO_GUSTA_FUERTE = {
     # Mueble de anticuario clasico, dijo que no le interesa nada
     "castellan": -4, "isabelin": -4, "fernandin": -4, "victorian": -4,
     "renacimiento": -4, "renacentista": -4, "barroc": -4, "luis xv": -4,
+    # los "neo" del XIX: el limite de palabra no deja que "renacentista"
+    # salte dentro de "neorrenacentista", asi que van con nombre propio
+    "neorrenacent": -4, "neorenacent": -4, "neogotic": -4, "neobarroc": -4,
+    "henri ii": -4, "enrique ii": -4,
+    # lo mismo en ingles, para Etsy, 1stDibs y The Oblist
+    "renaissance": -4, "baroque": -4, "rococo": -4, "louis xv": -4,
+    "gothic revival": -4, "edwardian": -3, "regency": -3,
     "luis xvi": -4, "luis felipe": -4, "imperio": -3, "napoleon iii": -4,
     "alfonsin": -4, "carlos iv": -4, "bargueno": -4, "vitrina ingles": -3,
     "chippendale": -3, "hepplewhite": -3, "reina ana": -3, "estilo ingles": -3,
