@@ -73,8 +73,11 @@ def medidas_txt(m):
 PAMONO = "https://www.pamono.es"
 # Las categorias "base" son vintage y antiguedades; las "contemporaneo-*" se
 # dejan fuera a proposito.
-PAMONO_CATEGORIAS = [
-    "comodas-cajoneras", "comodas-mid-century", "aparadores", "credenzas",
+# Muebles de guardar: se leen mas paginas y sus fichas se abren primero
+PAMONO_ALMACENAJE = ["comodas-cajoneras", "comodas-mid-century", "aparadores",
+                     "aparadores-buffets", "credenzas", "armarios", "alacenas-armarios",
+                     "barras-armarios-de-bar-1"]
+PAMONO_CATEGORIAS = PAMONO_ALMACENAJE + [
     "mesitas-noche", "librerias-estanterias", "escritorios",
     "lamparas-mesa", "lamparas-pared-apliques", "lamparas-pie",
     "sillas-auxiliares-sillas-comedor", "sillas-escritorio-oficina",
@@ -82,8 +85,7 @@ PAMONO_CATEGORIAS = [
 ]
 # Se abre la ficha (para sacar medidas, disenador, ano) solo de estas, que es
 # donde las medidas deciden: el encargo de la cajonera.
-PAMONO_CON_FICHA = {"comodas-cajoneras", "comodas-mid-century", "aparadores",
-                    "credenzas", "mesitas-noche", "librerias-estanterias", "escritorios"}
+PAMONO_CON_FICHA = set(PAMONO_ALMACENAJE) | {"mesitas-noche", "librerias-estanterias", "escritorios"}
 CACHE_FICHAS = os.path.join(DIR_DATOS, "pamono_fichas.json")
 
 RE_CARD = re.compile(r'<article class="product-card"(.*?)</article>', re.S)
@@ -178,11 +180,12 @@ def pamono(tope=TOPE_EUR, max_fichas=200):
     print("\n=== Pamono (categorias, por precio ascendente) ===")
     lotes = []
     for cat in PAMONO_CATEGORIAS:
-        lotes += pamono_categoria(cat, tope)
+        lotes += pamono_categoria(cat, tope, max_paginas=10 if cat in PAMONO_ALMACENAJE else 4)
     # fichas: se cachean por URL, asi cada dia solo se abren las nuevas
     cache = json.load(open(CACHE_FICHAS, encoding="utf-8")) if os.path.exists(CACHE_FICHAS) else {}
     cache = {u: v for u, v in cache.items() if v.get("v") == 3}
     pendientes = [l for l in lotes if l["categoria"] in PAMONO_CON_FICHA and l["url"] not in cache]
+    pendientes.sort(key=lambda l: l["categoria"] not in PAMONO_ALMACENAJE)   # guardar, primero
     if pendientes:
         print(f"  abriendo {min(len(pendientes), max_fichas)} fichas nuevas de "
               f"{len(pendientes)} (medidas y disenador)")
@@ -215,7 +218,16 @@ def pamono(tope=TOPE_EUR, max_fichas=200):
 # 1STDIBS
 # ===========================================================================
 DIBS = "https://www.1stdibs.com"
-DIBS_CATEGORIAS = [
+DIBS_ALMACENAJE = [
+    "furniture/storage-case-pieces/cabinets",
+    "furniture/storage-case-pieces/wardrobes-armoires",
+    "furniture/storage-case-pieces/buffets",
+    "furniture/storage-case-pieces/cupboards",
+    "furniture/storage-case-pieces/vitrines",
+    "furniture/storage-case-pieces/dry-bars",
+    "furniture/storage-case-pieces/apothecary-cabinets",
+]
+DIBS_CATEGORIAS = DIBS_ALMACENAJE + [
     "furniture/storage-case-pieces/dressers",
     "furniture/storage-case-pieces/commodes-chests-of-drawers",
     "furniture/storage-case-pieces/sideboards",
@@ -294,7 +306,8 @@ def primerdibs(tope=TOPE_EUR):
     print("\n=== 1stDibs (categorias con filtro de precio) ===")
     lotes = []
     for cat in DIBS_CATEGORIAS:
-        lotes += dibs_categoria(cat, tope)
+        guardar_ = cat in DIBS_ALMACENAJE or "storage-case-pieces" in cat
+        lotes += dibs_categoria(cat, tope, max_paginas=5 if guardar_ else 3)
     vistos, unicos = set(), []
     for l in lotes:
         if l["url"] not in vistos:

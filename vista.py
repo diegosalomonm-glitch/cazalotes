@@ -26,7 +26,7 @@ from encargo import dimensiones
 from plantilla import PLANTILLA
 from puntuar import ranking, todos_los_vivos
 from etsy import cargar_si_fresco
-from scraper import DIR_DATOS
+from scraper import DIR_DATOS, despegar_br
 
 
 # --------------------------------------------------------------------------
@@ -205,7 +205,7 @@ def preparar(lotes):
             # para el desplegable: todo Etsy junto, no 1.400 tiendas sueltas
             "grupo": "Etsy" if l.get("casa") == "etsy" else l["casa_nombre"],
             "lote": l.get("lote"),
-            "titulo": (l.get("titulo") or "sin titulo")[:140],
+            "titulo": despegar_br(l.get("titulo") or "sin titulo", l.get("texto"))[:140],
             "salida": l.get("salida"),
             "total": c.get("total"),
             "recargo": c.get("recargo_pct"),

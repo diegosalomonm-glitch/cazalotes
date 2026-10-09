@@ -311,7 +311,16 @@ let visibles=[];
 
 /* vocabulario del buscador: sinonimos reales de catalogo espanol */
 const TIPOS={
- 'almacenaje':['cajonera','comoda','aparador','armario','credenza','sideboard','chifonier','cajonero','mueble bajo','consola','vitrina'],
+ /* muebles de guardar en los idiomas en que escriben las fuentes: espanol,
+    ingles (Etsy, 1stDibs, The Oblist), italiano, frances, aleman y neerlandes.
+    Son expresiones regulares: van con limite de palabra por la izquierda. */
+ 'almacenaje':['cajonera','cajonero','comoda','aparador','armario','alacena','ropero',
+   'credenza','chifonier','chiffonn?ier','sinfonier','(?<!en |medidas |de )vitrin[ae](?!:)','taquillon',
+   'trinchero','mueble bar','mueble bajo','sideboard','highboard','lowboard','dresser',
+   'chests? of drawers','chest(?!erfield|nut)','commode','cabinet','cupboard','wardrobe',
+   'armoire','tallboy','bureau','tansu','(?<!bernard )buffet','enfilade','bahut','semainier',
+   'cassettiera','cassettone','armadio','madia','mobile bar','kommode','schrank','anrichte',
+   'ladekast','dressoir'],
  'asiento':['silla','sillon','butaca','taburete','banqueta','sofa','canape','banco'],
  'mesa':['mesa','mesita','velador','escritorio','buro','mesa de centro','mesa de comedor'],
  'luz':['lampara','flexo','aplique','candelabro','farol','plafon','luminaria','quinque'],
@@ -322,6 +331,15 @@ const TIPOS={
  'alfombra':['alfombra','kilim','tapiz'],
  'ceramica':['ceramica','porcelana','jarron','loza','gres']
 };
+/* una expresion por tipo, compilada una vez. Limite de palabra por la
+   izquierda: sin el, "chest" saltaba en "Manchester" y "mesa" en "remesa". */
+/* El mueble siempre se nombra en el titulo. En la descripcion "armario" o
+   "cabinet" aparecen en cuadros y en cuencos ("display cabinet"). */
+const SOLO_TITULO=new Set(['almacenaje']);
+const _reTipos={};
+function reTipo(t){
+  return _reTipos[t]||(_reTipos[t]=new RegExp('(?:^|[^a-z0-9])(?:'+(TIPOS[t]||['$^']).join('|')+')'));
+}
 const MATS=['roble','nogal','teca','palisandro','pino','haya','bronce','marmol',
             'hierro','acero','laton','ceramica','cristal','cuero','mimbre','formica'];
 const EPOCAS=['1950','1960','1970','1980','s. XIX','s. XVIII'];
@@ -337,6 +355,7 @@ const plano=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'
 DATOS.forEach(d=>{
   d._t=plano(d.titulo+' '+(d.desc||'')+' '+(d.mats||[]).join(' ')+' '+d.fuente);
   d._tt=plano(d.titulo+' '+(d.desc||'').slice(0,160));
+  d._ti=plano(d.titulo);
 });
 
 function chips(cont,lista){
@@ -407,8 +426,7 @@ function cumple(d,E){
   if(E.tipos.length){
     /* el tipo se busca en el titulo y el arranque de la descripcion, no en
        todo el texto: asi "mesa" no cuela un cuadro que menciona una mesa */
-    const pal=E.tipos.flatMap(t=>TIPOS[t]||[]);
-    if(!pal.some(p=>d._tt.includes(p)))return false;
+    if(!E.tipos.some(t=>reTipo(t).test(SOLO_TITULO.has(t)?d._ti:d._tt)))return false;
   }
   if((E.cols||[]).length&&!E.cols.some(c=>(d.col||[]).includes(c)))return false;
   if(E.mats.length&&!E.mats.some(m=>(d.mats||[]).includes(m)))return false;
@@ -605,8 +623,7 @@ function pintarGuardados(){
 $('#guardar').addEventListener('click',()=>{
   const n=prompt('Nombre del encargo'); if(!n)return;
   encargos[n]=leerEncargo(); guardarTodo(); pintarGuardados(); });
-$('#guardados').addEventListener('change',e=>{
-  const E=encargos[e.target.value]; if(!E)return;
+function ponerEncargo(E){
   $('#q').value=E.q||''; $('#fuente').value=E.fuente||''; $('#orden').value=E.orden||'g';
   $('#wmax').value=E.wmax||''; $('#hmax').value=E.hmax||''; $('#dmax').value=E.dmax||'';
   $('#tope').value=E.tope||''; $('#excluir').value=(E.excluir||[]).join(', ');
@@ -616,9 +633,26 @@ $('#guardados').addEventListener('change',e=>{
     (arr||[]).forEach(x=>{ const c=document.querySelector(sel+' .chip[data-x="'+x+'"]');
       if(c)c.classList.add('on'); }));
   ['solonov','nitidas','ocultano'].forEach((id,i)=>
-    $('#'+id).classList.toggle('on',[E.nov,E.nit,E.ocu][i]));
-  pintar(); });
+    $('#'+id).classList.toggle('on',!![E.nov,E.nit,E.ocu][i]));
+  pintar(); }
+$('#guardados').addEventListener('change',e=>{
+  const E=encargos[e.target.value]; if(E)ponerEncargo(E); });
 pintarGuardados();
+
+/* Una busqueda puede venir en el enlace, para abrir la pagina ya filtrada:
+   vista.html#tipos=almacenaje&tope=   (tope vacio = sin tope de precio)
+   Claves: q, fuente, orden, tipos, mats, epocas, cols, tope, wmax, hmax, dmax,
+   excluir. Las listas van separadas por comas. */
+function encargoDelEnlace(){
+  const h=new URLSearchParams(location.hash.slice(1)); if(![...h.keys()].length)return null;
+  const lista=k=>(h.get(k)||'').split(',').map(x=>x.trim()).filter(Boolean);
+  return {q:h.get('q')||'', fuente:h.get('fuente')||'', orden:h.get('orden')||'g',
+    tipos:lista('tipos'), mats:lista('mats'), epocas:lista('epocas'), cols:lista('cols'),
+    tope:h.has('tope')?(+h.get('tope')||''):(+$('#tope').value||''),
+    wmax:+h.get('wmax')||'', hmax:+h.get('hmax')||'', dmax:+h.get('dmax')||'',
+    excluir:lista('excluir')};
+}
+window.addEventListener('hashchange',()=>{ const E=encargoDelEnlace(); if(E)ponerEncargo(E); });
 
 /* en pantalla estrecha el panel abierto empuja los resultados muy abajo */
 if(window.innerWidth<700){
@@ -635,6 +669,7 @@ $('#exportar').addEventListener('click',function(){
   a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}));
   a.download='votos.json'; a.click(); });
 
-pintar();
+const delEnlace=encargoDelEnlace();
+if(delEnlace)ponerEncargo(delEnlace); else pintar();
 </script></body></html>
 """

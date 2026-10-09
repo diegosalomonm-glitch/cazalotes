@@ -44,6 +44,25 @@ def _esperar():
     _ultima[0] = time.time()
 
 
+RE_BR_PEGADO = re.compile(r"([a-z0-9]+)br([a-z]{3,})")
+
+
+def despegar_br(titulo, texto=""):
+    """
+    Segre y Sala Retiro hacen el slug de la URL con el HTML del titulo, y cada
+    <br> queda como "br" pegado: "para biokbrcomoda rectangular". Asi "comoda"
+    no se encuentra como palabra. Se separa solo si la palabra pegada NO existe
+    en el texto del lote, para no romper "sobre", "obra" o "abrir".
+    """
+    import unicodedata
+    plano = unicodedata.normalize("NFD", (texto or "").lower())
+    plano = "".join(c for c in plano if unicodedata.category(c) != "Mn")
+
+    def _uno(m):
+        return m.group(0) if m.group(0) in plano else f"{m.group(1)} {m.group(2)}"
+    return RE_BR_PEGADO.sub(_uno, titulo or "")
+
+
 def traer(url, intentos=3):
     """GET educado. Devuelve el HTML o None."""
     for n in range(intentos):
@@ -180,6 +199,7 @@ def extraer_lotes(html, casa_id, url_origen):
         titulo = re.sub(r"\s*presencial\s+Lote\s*:?\s*\d*\s*", "", titulo).strip()
         titulo = re.sub(r"\s*Precio salida.*$", "", titulo).strip()
         titulo = re.sub(r"\s{2,}", " ", titulo)
+        titulo = despegar_br(titulo, texto)
 
         img_url = None
         img = (cont or a).find("img") if cont else a.find("img")

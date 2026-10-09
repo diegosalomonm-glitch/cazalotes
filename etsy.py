@@ -71,6 +71,10 @@ BUSQUEDAS = [
     "mid century chair", "bentwood chair vintage", "cesca chair", "danish teak chair",
     # almacenaje italiano mid-century (la referencia del Ico Parisi)
     "teak sideboard", "mid century dresser", "italian sideboard 60s",
+    # muebles de guardar en general (busqueda del 2026-10-09)
+    "vintage chest of drawers", "mid century credenza", "vintage highboard",
+    "vintage wardrobe", "mid century cabinet", "vintage bar cabinet",
+    "vintage kommode", "tansu chest",
     # escultura y bustos, lo que busca ahora
     "bronze bust", "brutalist sculpture", "marble sculpture vintage",
     # disenadores que salieron de sus favoritos y de La Basilica
