@@ -66,6 +66,19 @@ def limpiar(s):
     return "".join(c for c in s if unicodedata.category(c) != "Mn")
 
 
+# Solo en el TITULO: lo que no es un mueble aunque nombre uno. En el texto no,
+# porque "teak sideboard with brass handles" es un aparador de verdad.
+# Salio buscando muebles de guardar en Etsy (2026-10-09): tiradores, maquetas
+# para vender laminas, patrones de costura, miniaturas, cajitas.
+RE_TITULO_FUERA = re.compile(
+    r"\b(drawer|cabinet|wardrobe|dresser|furniture|door)\s+(pulls?|knobs?|handles?|legs?|hardware|caddy|tray)\b"
+    r"|\b(knobs?|pulls?)\b.*\b(set of|drawer|cabinet)\b|\bmock-?ups?\b|\bclipart\b|\bprintables?\b"
+    r"|\bsewing pattern\b|\bdigital (download|file)\b|\b(svg|png|psd|jpg)\b|\bdoll(house|s)?\b"
+    r"|\b1:12\b|\bjunk journal\b|\bposter\b|\bart print\b|\bwall art\b|\btrinket box\b"
+    r"|\bring box\b|\bphotography prop\b|\bbackdrop\b|kommodenknopf|m.belgriff|schrankgriff"
+    r"|\bmade to order\b|\bcustom (credenza|sideboard|cabinet|dresser)", re.I)
+
+
 def puntuar(lote):
     txt = limpiar(lote.get("titulo", "") + " " + lote.get("texto", ""))
     pts = 0
@@ -196,6 +209,9 @@ def puntuar(lote):
     lote["avisos"] = list(lote.get("avisos_fuente") or []) + avisos
     if lote.get("vintage") is False:
         banderas.insert(0, "pieza NUEVA, no vintage")
+    if RE_TITULO_FUERA.search(lote.get("titulo") or ""):
+        banderas.append("NO: accesorio, lamina o miniatura, no un mueble")
+        descartado = True
     lote["descartado"] = descartado or fuera_presupuesto
     # "rechazado" = choca de frente con su gusto (religioso, joyeria, vino...).
     # Va aparte del presupuesto: la pagina tiene su propio filtro de precio y
@@ -215,6 +231,16 @@ def vigente(l, dias=4):
     ninguna pasada, se da por vendida y sale de la pagina.
     """
     if l.get("historico"):
+        return False
+    # Alcala marca en el titulo lo que ya se adjudico: "VENDIDO 1052. Comoda..."
+    # ("NO VENDIDO" no empieza asi y se queda: es candidato a rebaja)
+    if re.match(r"\s*vendido\b", l.get("titulo") or "", re.I):
+        return False
+    # Etsy deja anuncios ya vendidos como "SOLD - example only" a 0 EUR
+    if re.search(r"^\W*(now\s+)?sold\b|do not purchase", l.get("titulo") or "", re.I):
+        return False
+    # Pamono pone 2 o 3 EUR a las piezas sin precio publico: no son gangas
+    if l.get("casa") == "pamono" and (l.get("salida") or 0) < 20:
         return False
     if not l.get("precio_fijo") or l.get("casa") == "etsy":
         return True

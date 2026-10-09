@@ -313,12 +313,13 @@ let visibles=[];
 const TIPOS={
  /* muebles de guardar en los idiomas en que escriben las fuentes: espanol,
     ingles (Etsy, 1stDibs, The Oblist), italiano, frances, aleman y neerlandes.
-    Son expresiones regulares: van con limite de palabra por la izquierda. */
+    Son expresiones regulares: van con limite de palabra por la izquierda.
+    "bureau" NO: en frances y neerlandes es escritorio (lampe de bureau). */
  'almacenaje':['cajonera','cajonero','comoda','aparador','armario','alacena','ropero',
    'credenza','chifonier','chiffonn?ier','sinfonier','(?<!en |medidas |de )vitrin[ae](?!:)','taquillon',
    'trinchero','mueble bar','mueble bajo','sideboard','highboard','lowboard','dresser',
    'chests? of drawers','chest(?!erfield|nut)','commode','cabinet','cupboard','wardrobe',
-   'armoire','tallboy','bureau','tansu','(?<!bernard )buffet','enfilade','bahut','semainier',
+   'armoire','tallboy','tansu','(?<!bernard )buffet','enfilade','bahut','semainier',
    'cassettiera','cassettone','armadio','madia','mobile bar','kommode','schrank','anrichte',
    'ladekast','dressoir'],
  'asiento':['silla','sillon','butaca','taburete','banqueta','sofa','canape','banco'],
@@ -336,6 +337,11 @@ const TIPOS={
 /* El mueble siempre se nombra en el titulo. En la descripcion "armario" o
    "cabinet" aparecen en cuadros y en cuencos ("display cabinet"). */
 const SOLO_TITULO=new Set(['almacenaje']);
+/* Lo que nombra un mueble sin serlo: "Mid Century Dresser Jewelry Box",
+   "Vanity Tray", "Miniature Tansu Chest". Se mira en el titulo. */
+const TIPOS_NO={almacenaje:/jewel|joyer|trinket|tray|bandeja|perfum|figurin|glasses|goblet|decanter|organi[sz]er|runner|key ?box|catch-?all|miniatur|1:6|lint brush|money ?box|handles? for|dish|knob|pomo|tirador|pattern|art for|frame|interior with|accessor|essentials|pants|valet|jars?\b|vanity set|powder|vase|hanging|lundby|\bmini\b|kitchen design/};
+/* y si declara medidas, un mueble de guardar mide al menos 35 cm por algun lado */
+const TIPOS_MIN_CM={almacenaje:35};
 const _reTipos={};
 function reTipo(t){
   return _reTipos[t]||(_reTipos[t]=new RegExp('(?:^|[^a-z0-9])(?:'+(TIPOS[t]||['$^']).join('|')+')'));
@@ -426,7 +432,9 @@ function cumple(d,E){
   if(E.tipos.length){
     /* el tipo se busca en el titulo y el arranque de la descripcion, no en
        todo el texto: asi "mesa" no cuela un cuadro que menciona una mesa */
-    if(!E.tipos.some(t=>reTipo(t).test(SOLO_TITULO.has(t)?d._ti:d._tt)))return false;
+    if(!E.tipos.some(t=>reTipo(t).test(SOLO_TITULO.has(t)?d._ti:d._tt)
+        &&!(TIPOS_NO[t]&&TIPOS_NO[t].test(d._ti))
+        &&!(TIPOS_MIN_CM[t]&&d.d3&&d.d3.length&&Math.max(...d.d3)<TIPOS_MIN_CM[t])))return false;
   }
   if((E.cols||[]).length&&!E.cols.some(c=>(d.col||[]).includes(c)))return false;
   if(E.mats.length&&!E.mats.some(m=>(d.mats||[]).includes(m)))return false;

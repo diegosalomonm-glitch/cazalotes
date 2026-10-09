@@ -234,6 +234,22 @@ def preparar(lotes):
     return out
 
 
+# Busquedas con nombre: cada una deja un archivo en datos/ que abre la pagina
+# con la busqueda puesta (open datos/muebles-de-guardar.html). La sintaxis es
+# la del enlace: vista.html#tipos=almacenaje&tope=
+ATAJOS = {
+    "muebles-de-guardar": "tipos=almacenaje&tope=",
+}
+
+
+def escribir_atajos():
+    for nombre, busqueda in ATAJOS.items():
+        with open(os.path.join(DIR_DATOS, nombre + ".html"), "w", encoding="utf-8") as f:
+            f.write('<!doctype html><meta charset="utf-8"><title>Cacharrotes</title>'
+                    f'<meta http-equiv="refresh" content="0;url=vista.html#{busqueda}">'
+                    f'<a href="vista.html#{busqueda}">Abrir la busqueda</a>')
+
+
 def construir(minimo=None):
     """
     Por defecto entra TODO lo que esta a la venta y no choca con su gusto: asi
@@ -260,6 +276,7 @@ def construir(minimo=None):
     salida = os.path.join(DIR_DATOS, "vista.html")
     with open(salida, "w", encoding="utf-8") as f:
         f.write(html)
+    escribir_atajos()
     return salida, len(datos), len(lotes)
 
 

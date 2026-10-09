@@ -227,6 +227,9 @@ def normalizar(l, tienda=None):
         valor = precio["amount"] / precio["divisor"]
     except (KeyError, ZeroDivisionError, TypeError):
         return None
+    # descargables (laminas, maquetas, patrones) y anuncios a 0: no son piezas
+    if l.get("is_digital") or valor <= 0:
+        return None
     moneda = precio.get("currency_code", "EUR")
     eur = round(valor * A_EUR[moneda], 2) if moneda in A_EUR else None
 

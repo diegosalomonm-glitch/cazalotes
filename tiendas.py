@@ -112,7 +112,9 @@ def pamono_categoria(cat, tope=TOPE_EUR, max_paginas=4):
             href, titulo = mh.group(1), html.unescape(mh.group(2))
             precio = float(mp.group(1))
             mas_caro = max(mas_caro, precio)
-            if href in vistos or precio > tope:
+            # precio > tope: fuera. Menos de 20 EUR: Pamono pone 2 o 3 EUR a lo que
+            # no tiene precio publico, no es una ganga
+            if href in vistos or precio > tope or precio < 20:
                 continue
             vistos.add(href)
             nuevos += 1
