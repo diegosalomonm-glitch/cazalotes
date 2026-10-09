@@ -154,6 +154,16 @@ in the browser and exported as JSON, which is how the taste profile gets correct
 Photographs come at 500 px in the grid and at full size in the detail view. The listing
 pages only link a 260 px thumbnail, which is why an earlier version looked blurry.
 
+## Sharing a search
+
+`compartir.py` turns the storage search into a phone page that can be published as a
+private claude.ai Artifact and shared with one person, who votes with a heart. A published
+page cannot load images from other sites, so it downloads one small thumbnail per piece
+(220 x 275) and packs them a hundred to a JPEG mosaic; every piece links to its shop for the
+real photographs. Etsy is left out, because its API terms forbid showing data older than
+24 hours. Votes go to the Artifact's shared store, one document per person; whoever cannot
+write there keeps their votes on their phone and can copy the list to send it.
+
 ## Layout
 
 | File | Job |
@@ -164,6 +174,7 @@ pages only link a 260 px thumbnail, which is why an earlier version looked blurr
 | `duran.py` | Durán loads lots over AJAX and needs its own adapter |
 | `shopify.py` | Shops with an open `products.json`, including The Oblist |
 | `tiendas.py` | Pamono and 1stDibs |
+| `compartir.py` | A search as a phone page to share and vote on |
 | `marca/` | The whale, in two sizes |
 | `puntuar.py` | Scoring, and the catalogue-vocabulary flags |
 | `encargo.py` | Briefs with hard dimensional limits |
